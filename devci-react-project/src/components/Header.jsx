@@ -10,18 +10,24 @@ const Header = ({ setIsAuthenticated }) => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem("auth");
+    localStorage.removeItem("auth"); //clear stored role
+    localStorage.removeItem("role");
     navigate("/login"); // Redirect to login page
   };
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
+    localStorage.setItem("role", role); //store role in local storage
     setIsDropdownOpen(false);
+    if (role === "Pharmacist"){
+      navigate("/pharmacist")
+    } else{
+    navigate("/home")
+  }
   };
 
   return (
     <header className="relative bg-gray-800 text-white py-4 px-6 flex justify-between items-center shadow-md z-50">
-      {/* Left Side: Logo */}
       <h2 className="text-2xl font-bold">DEVCI</h2>
 
       {/* Centered Navigation */}

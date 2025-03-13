@@ -1,43 +1,49 @@
-import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom"
-import { useState } from "react"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Header from "./components/Header";
-import LogIn from './components/LogIn'
+import LogIn from './components/LogIn';
 import HomePage from "./components/HomePage";
+import PharmacistDashboard from "./components/PharmacistDashboard";
 
 function App() {
-
-const[isAuthenticated, setIsAuthenticated] = useState(() =>{
-  return localStorage.getItem("auth") === "true"
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem("auth") === "true";
   });
-const handleAuth = (value) => {
-  setIsAuthenticated(value);
-  localStorage.setItem("auth", value);
-}
+
+  useEffect(() => {
+    const authStatus = localStorage.getItem("auth") === "true";
+    setIsAuthenticated(authStatus);
+  }, []);
+
+  const handleAuth = (value) => {
+    localStorage.setItem("auth", value ? "true" : "false");
+    setIsAuthenticated(value);
+  };
 
   return (
     <Router>
       <Routes>
-        {/* Login route */}
-        <Route path="/login" element={<LogIn setIsAuthenticated={handleAuth} />}/>
-        {/* Home route */}
+        {/* Login Route */}
+        <Route path="/login" element={<LogIn setIsAuthenticated={handleAuth} />} />
+        
+        {/* Home Route (Protected) */}
         <Route
-         path = "/home"
-         element = {isAuthenticated ?(
-          <>
-          <Header setIsAuthenticated={handleAuth} />
-          <HomePage setIsAuthenticated={handleAuth}  /> 
-          </> 
-         ):(
-          <Navigate to ="/login/" />
-         )} 
-         />
-         {/* Default route */}
-         <Route path = "*" element={<Navigate to = "/login" />} />
-         
+          path="/home"
+          element={isAuthenticated ? (
+            <>
+              <Header setIsAuthenticated={handleAuth} />
+              <HomePage setIsAuthenticated={handleAuth} />
+            </>
+          ) : (
+            <Navigate to="/login" replace />
+          )}
+        />
+        <Route path="/pharmacist" element={<PharmacistDashboard />} />
+        {/* Default Route */}
+        <Route path="*" element={<Navigate to={isAuthenticated ? "/home" : "/login"} />} />
       </Routes>
     </Router>
-  
-  )
+  );
 }
 
-export default App
+export default App;
