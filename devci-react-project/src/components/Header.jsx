@@ -1,18 +1,72 @@
-import React from 'react'
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
-const Header = () => {
+const Header = ({ setIsAuthenticated }) => {
+  const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("Select Role");
+
+  const roles = ["Doctor", "Pharmacist", "Admin"];
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("auth");
+    navigate("/login"); // Redirect to login page
+  };
+
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    setIsDropdownOpen(false);
+  };
+
   return (
-    <div>
-      <nav>
-      <ul>
-        <li><Link to="/">Home</Link></li>
-        <li><Link to="/services">Services</Link></li>
-        <li><Link to="/about">About</Link></li>
-        <li><Link to="/contact">Contact</Link></li>
-      </ul>
-    </nav>
-    </div>
-  )
-}
+    <header className="relative bg-gray-800 text-white py-4 px-6 flex justify-between items-center shadow-md z-50">
+      {/* Left Side: Logo */}
+      <h2 className="text-2xl font-bold">DEVCI</h2>
 
-export default Header
+      {/* Centered Navigation */}
+      <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-6">
+        <Link to="/home" className="hover:text-blue-400 transition duration-200">Home</Link>
+        <Link to="/profile" className="hover:text-blue-400 transition duration-200">Profile</Link>
+        <Link to="/settings" className="hover:text-blue-400 transition duration-200">Settings</Link>
+        
+        {/* Dropdown Menu */}
+        <div className="relative">
+          <button 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
+            className="bg-gray-700 px-4 py-2 rounded-md hover:bg-gray-600 transition"
+          >
+            {selectedRole}
+          </button>
+          
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded-lg shadow-lg z-50">
+              <ul className="py-2">
+                {roles.map((role) => (
+                  <li key={role}>
+                    <button 
+                      onClick={() => handleRoleSelect(role)}
+                      className="block px-4 py-2 hover:bg-gray-200 w-full text-left"
+                    >
+                      {role}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {/* Right Side: Logout Button */}
+      <button 
+        onClick={handleLogout} 
+        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 cursor-pointer"
+      >
+        Logout
+      </button>
+    </header>
+  );
+};
+
+export default Header;

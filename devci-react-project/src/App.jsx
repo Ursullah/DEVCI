@@ -1,7 +1,7 @@
 import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom"
 import { useState } from "react"
+import Header from "./components/Header";
 import LogIn from './components/LogIn'
-import './App.css'
 import HomePage from "./components/HomePage";
 
 function App() {
@@ -22,9 +22,18 @@ const handleAuth = (value) => {
         {/* Home route */}
         <Route
          path = "/home"
-         element = {isAuthenticated ? <HomePage /> :<Navigate to ="/login" />} /> 
+         element = {isAuthenticated ?(
+          <>
+          <Header setIsAuthenticated={handleAuth} />
+          <HomePage setIsAuthenticated={handleAuth}  /> 
+          </> 
+         ):(
+          <Navigate to ="/login/" />
+         )} 
+         />
          {/* Default route */}
          <Route path = "*" element={<Navigate to = "/login" />} />
+         
       </Routes>
     </Router>
   
