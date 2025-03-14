@@ -6,35 +6,62 @@ const PharmacistDashboard = () => {
   const [medicine, setMedicine] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [auditLogs, setAuditLogs] = useState([]);
+  const [apiStatus, setApiStatus] = useState(null);
 
-  const specialists = ["Cardiologist", "Neurologist", "Oncologist"]; // Allowed specializations
+  // Specializations that are allowed to prescribe
+  const specialists = ["Cardiologist", "Neurologist", "Oncologist"];
 
-  const verifyPrescription = () => {
+  const verifyPrescription = async () => {
     const randomSpecialization =
-      ["General Practitioner", "Dentist", "Surgeon" ,"Dermatologist", "Pedeatrician", "Dentist", "Optician"][Math.floor(Math.random() * 3)];
+      ["General Practitioner", "Dentist", "Surgeon", "Dermatologist", "Pediatrician", "Optician"][
+        Math.floor(Math.random() * 6)
+      ];
 
     let status;
-    if (specialists.includes(randomSpecialization)) {
-      status = "Valid ";
-      setStatusMessage(`Prescription Verified Successfully.`);
-    } else {
+    let warningMessage = "";
+
+    // Check if the specialization is valid
+    if (!specialists.includes(randomSpecialization)) {
       status = "Warning";
-      setStatusMessage(
-        `${medicine} is not typically prescribed by a ${randomSpecialization}.`
-      );
+      warningMessage = `${medicine} is not typically prescribed by a ${randomSpecialization}.`;
+    } else {
+      status = "Valid";
+      warningMessage = "Prescription Verified Successfully.";
     }
 
+    setStatusMessage(warningMessage);
+
+    // Check medicine availability via API
+    try {
+      const response = await fetch(`https://api.example.com/medicines?name=${medicine}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.available) {
+          setApiStatus({ type: "valid", message: "Medicine is Available!" });
+        } else {
+          setApiStatus({ type: "error", message: "Medicine is not Available!" });
+        }
+      } else {
+        setApiStatus({ type: "error", message: "Error fetching data!" });
+      }
+    } catch (error) {
+      setApiStatus({ type: "error", message: " API request failed!" });
+    }
+
+    // Store in audit logs
     const newLog = {
       time: new Date().toLocaleString(),
       medication: medicine,
-      status,
+      status: status === "Warning" ? "⚠️ Warning" : "Valid",
     };
 
-    const updatedLogs = [newLog, ...auditLogs].slice(0, 10); // Keep only the last 10 logs
+    const updatedLogs = [newLog, ...auditLogs].slice(0, 10); // Keep only last 10 logs
     setAuditLogs(updatedLogs);
     localStorage.setItem("auditLogs", JSON.stringify(updatedLogs)); // Persist logs
   };
 
+  // Load audit logs from local storage
   useEffect(() => {
     const storedLogs = JSON.parse(localStorage.getItem("auditLogs")) || [];
     setAuditLogs(storedLogs);
@@ -81,10 +108,18 @@ const PharmacistDashboard = () => {
         Verify Prescription
       </button>
 
+      {/* Specialization Warning/Success */}
       {statusMessage && (
         <div className={`mt-4 p-2 rounded text-white ${statusMessage.includes("⚠️") ? "bg-yellow-500" : "bg-green-500"}`}>
           {statusMessage}
         </div>
+      )}
+
+      {/* API Medicine Availability Status */}
+      {apiStatus && (
+        <p className={`mt-2 text-${apiStatus.type === "valid" ? "green" : "red"}-500`}>
+          {apiStatus.message}
+        </p>
       )}
 
       {/* Audit Logs */}
@@ -95,7 +130,10 @@ const PharmacistDashboard = () => {
         ) : (
           auditLogs.map((log, index) => (
             <li key={index} className="border-b p-2">
-              <strong>{log.time}</strong> - {log.medication} - <span className={`${log.status.includes("⚠️") ? "text-yellow-600" : "text-green-600"}`}>{log.status}</span>
+              <strong>{log.time}</strong> - {log.medication} -{" "}
+              <span className={log.status.includes("⚠️") ? "text-yellow-600" : "text-green-600"}>
+                {log.status}
+              </span>
             </li>
           ))
         )}
