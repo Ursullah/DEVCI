@@ -44,10 +44,21 @@ const LogIn = ({ setIsAuthenticated }) => {
         e.preventDefault(); // Prevent form submission
         if (!validate()) return; // Stop execution if validation fails
 
+        console.log("Selected Role:", role);
+
         setIsAuthenticated(true);
         localStorage.setItem("auth", "true");
         localStorage.setItem("role", role); // Store role in localStorage
-        navigate("/home");
+        
+        if (role === "Doctor") {
+            navigate("/doctor-dashboard");
+        } else if (role === "Pharmacist") {
+            navigate("/pharmacist-dashboard");
+        } else if (role === "Admin") {
+            navigate("/admin-dashboard");
+        } else {
+            navigate("/home");
+        }
     };
 
     return (

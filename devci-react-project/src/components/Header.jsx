@@ -21,21 +21,16 @@ const Header = ({ setIsAuthenticated }) => {
     setIsDropdownOpen(false);
     if (role === "Pharmacist"){
       navigate("/pharmacist")
-    } else{
-    navigate("/home")
-  }
+    } else if (role === "Doctor"){
+    navigate("/doctor-dashboard")
+    }else{
+      navigate("/home")
+    }
   };
 
   return (
     
     <header className="relative bg-gray-900 text-white py-4 px-6 flex justify-between items-center shadow-md z-50">
-      {/* Back Button */}
-      {/* <button
-        onClick={() => navigate(-1)}
-        className="bg-gray-700 px-4 py-2 rounded-md hover:bg-gray-600 transition"
-      >
-        Back
-      </button> */}
       <h2 className="text-2xl font-bold">DEVCI</h2>
 
       {/* Centered Navigation */}

@@ -70,7 +70,7 @@ const PharmacistDashboard = () => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4">Pharmacist Dashboard</h2>
-
+      <form onSubmit={verifyPrescription}>
       <div className="mb-4">
         <label className="block text-sm font-medium">Doctor's ID:</label>
         <input
@@ -107,6 +107,7 @@ const PharmacistDashboard = () => {
       >
         Verify Prescription
       </button>
+      </form>
 
       {/* Specialization Warning/Success */}
       {statusMessage && (
