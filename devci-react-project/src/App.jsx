@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Header from "./components/Header";
 import LogIn from './components/LogIn';
 import HomePage from "./components/HomePage";
+import AboutPage from "./components/AboutPage";
+import ContactPage from "./components/ContactPage";
 import PharmacistDashboard from "./components/PharmacistDashboard";
 
 function App() {
@@ -38,6 +40,8 @@ function App() {
             <Navigate to="/login" replace />
           )}
         />
+         <Route path="/about" element={<AboutPage />} />
+         <Route path="/contact" element={<ContactPage />} />
         <Route path="/pharmacist" element={<PharmacistDashboard />} />
         {/* Default Route */}
         <Route path="*" element={<Navigate to={isAuthenticated ? "/home" : "/login"} />} />

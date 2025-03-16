@@ -27,14 +27,22 @@ const Header = ({ setIsAuthenticated }) => {
   };
 
   return (
-    <header className="relative bg-gray-800 text-white py-4 px-6 flex justify-between items-center shadow-md z-50">
+    
+    <header className="relative bg-gray-900 text-white py-4 px-6 flex justify-between items-center shadow-md z-50">
+      {/* Back Button */}
+      {/* <button
+        onClick={() => navigate(-1)}
+        className="bg-gray-700 px-4 py-2 rounded-md hover:bg-gray-600 transition"
+      >
+        Back
+      </button> */}
       <h2 className="text-2xl font-bold">DEVCI</h2>
 
       {/* Centered Navigation */}
       <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-6">
         <Link to="/home" className="hover:text-blue-400 transition duration-200">Home</Link>
-        <Link to="/profile" className="hover:text-blue-400 transition duration-200">Profile</Link>
-        <Link to="/settings" className="hover:text-blue-400 transition duration-200">Settings</Link>
+        <Link to="/about" className="hover:text-blue-400 transition duration-200">About Us</Link>
+        <Link to="/contact" className="hover:text-blue-400 transition duration-200">Contact</Link>
         
         {/* Dropdown Menu */}
         <div className="relative">
