@@ -41,11 +41,40 @@ const LogIn = ({ setIsAuthenticated }) => {
         else if (name === "password") setPassword(value);
     };
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault(); // Prevent form submission
         if (!validate()) return; // Stop execution if validation fails
 
-        console.log("Selected Role:", role);
+        // console.log("Selected Role:", role);
+
+        try {
+            const response = await fetch("http://localhost:5000/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })  // Only send email and password
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok) {
+                setIsAuthenticated(true);
+                localStorage.setItem("auth", "true");
+                localStorage.setItem("token", data.token);  // Store JWT token
+                localStorage.setItem("role", data.role);    // Store role from backend
+    
+                if (data.role === "Doctor") {
+                    navigate("/doctor-dashboard");
+                } else if (data.role === "Pharmacist") {
+                    navigate("/pharmacist-dashboard");
+                } else if (data.role === "Admin") {
+                    navigate("/admin-dashboard");
+                }
+            } else {
+                setErrors({ login: data.message });  // Display error message from backend
+            }
+        } catch (error) {
+            setErrors({ login: "Server error. Try again later." });
+        }
 
         setIsAuthenticated(true);
         localStorage.setItem("auth", "true");

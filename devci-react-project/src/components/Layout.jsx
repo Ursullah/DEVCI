@@ -16,7 +16,7 @@ const Layout = () => {
         </nav>
       </header>
 
-      {/* 🔹 This will change based on the route */}
+      {/*This will change based on the route */}
       <main>
         <Outlet />
       </main>

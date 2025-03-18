@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // import LOGOUT from './LOGOUT';
 const AdminDashboard = () => {
@@ -9,7 +9,27 @@ const AdminDashboard = () => {
     const [errors, setErrors] = useState({});
     const [editingDoctor, setEditingDoctor] = useState(null); 
     const [specialization, setSpecialization] = useState("")
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [prescriptions, setPrescriptions] = useState([]);
     const navigate = useNavigate();
+
+      // Fetch data from the backend
+  useEffect(() => {
+    fetch("http://localhost:5000/doctors")
+      .then((res) => res.json())
+      .then((data) => setDoctors(data))
+      .catch((err) => console.error("Error fetching doctors:", err));
+
+    fetch("http://localhost:5000/audit-logs")
+      .then((res) => res.json())
+      .then((data) => setAuditLogs(data))
+      .catch((err) => console.error("Error fetching audit logs:", err));
+
+    fetch("http://localhost:5000/prescriptions")
+      .then((res) => res.json())
+      .then((data) => setPrescriptions(data))
+      .catch((err) => console.error("Error fetching prescriptions:", err));
+  }, []);
 
     const validate = () => {
         const validationErrors = {};
@@ -36,32 +56,51 @@ const AdminDashboard = () => {
         else if (name === "specialization") setSpecialization(value);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validate()) return;
+         
+        const doctorData = { name, email, hospital, specialization };
 
         if (editingDoctor !== null) {
-            // Update existing doctor
-            const updatedDoctors = doctors.map((doc, index) =>
-                index === editingDoctor ? { name, email, hospital,specialization } : doc
-            );
-            setDoctors(updatedDoctors);
-            setEditingDoctor(null);
+            // Send PUT request to update doctor
+            await fetch(`http://localhost:5000/doctors/${editingDoctor}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(doctorData),
+            });
+    
+            alert("Doctor updated successfully!");
         } else {
-            // Register new doctor
-            setDoctors([...doctors, { name, email, hospital, specialization }]);
+            // Send POST request to register a new doctor
+            await fetch("http://localhost:5000/doctors", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(doctorData),
+            });
+    
+            alert("Doctor registered successfully!");
         }
-
         setName("");
         setEmail("");
         setHospital("");
         setSpecialization("");
         alert("Doctor successfully registered ✅");
+
+        fetchDoctor();
     };
 
-    const handleDelete = (index) => {
-        const updatedDoctors = doctors.filter((_, i) => i !== index);
-        setDoctors(updatedDoctors);
+    const handleDelete = async (doctorId) => {
+        if (!window.confirm("Are you sure you want to delete this doctor?")) return;
+
+        await fetch(`http://localhost:5000/doctors/${doctorId}`, {
+            method: "DELETE",
+        });
+    
+        alert("Doctor deleted successfully");
+    
+        // Refresh doctor list
+        fetchDoctors();
     };
 
     const handleEdit = (index) => {
