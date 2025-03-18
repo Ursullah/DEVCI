@@ -18,7 +18,7 @@ const AdminDashboard = () => {
     fetch("http://localhost:5000/doctors")
       .then((res) => res.json())
       .then((data) => setDoctors(data))
-      .catch((err) => console.error("Error fetching doctors:", err));
+      .catch((err) => console.error("Error fetching doctors:", err)); //err reps error object that gets passed when an error occurs during fetch request
 
     fetch("http://localhost:5000/audit-logs")
       .then((res) => res.json())
@@ -29,6 +29,13 @@ const AdminDashboard = () => {
       .then((res) => res.json())
       .then((data) => setPrescriptions(data))
       .catch((err) => console.error("Error fetching prescriptions:", err));
+        
+    //   protect admin dashboard
+      const role = localStorage.getItem("role");
+      if(role !== "admin"){
+        alert("Unauthorized access!Redirecting to login");
+        navigate("/login")
+      }
   }, []);
 
     const validate = () => {
