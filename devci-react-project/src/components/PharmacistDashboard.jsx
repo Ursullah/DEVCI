@@ -1,144 +1,88 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+const doctors = [
+  { id: "D001", name: "Dr. John Smith", specialization: "Cardiologist", medicines: ["Aspirin", "Metoprolol", "Atorvastatin"] },
+  { id: "D002", name: "Dr. Sarah Johnson", specialization: "Neurologist", medicines: ["Gabapentin", "Carbamazepine", "Dopamine"] },
+  { id: "D003", name: "Dr. Emily Brown", specialization: "Oncologist", medicines: ["Tamoxifen", "Cisplatin", "Methotrexate"] },
+  { id: "D004", name: "Dr. Mark Wilson", specialization: "General Practitioner", medicines: ["Paracetamol", "Ibuprofen", "Amoxicillin"] }
+];
 
 const PharmacistDashboard = () => {
+  const navigate = useNavigate();
   const [doctorID, setDoctorID] = useState("");
-  const [patientName, setPatientName] = useState("");
   const [medicine, setMedicine] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [auditLogs, setAuditLogs] = useState([]);
-  const [apiStatus, setApiStatus] = useState(null);
+  
+  const handleVerify = async () => {
+    const doctor = doctors.find(doc => doc.id === doctorID);
 
-  // Specializations that are allowed to prescribe
-  const specialists = ["Cardiologist", "Neurologist", "Oncologist"];
-
-  const verifyPrescription = async () => {
-    const randomSpecialization =
-      ["General Practitioner", "Dentist", "Surgeon", "Dermatologist", "Pediatrician", "Optician"][
-        Math.floor(Math.random() * 6)
-      ];
-
-    let status;
-    let warningMessage = "";
-
-    // Check if the specialization is valid
-    if (!specialists.includes(randomSpecialization)) {
-      status = "Warning";
-      warningMessage = `${medicine} is not typically prescribed by a ${randomSpecialization}.`;
-    } else {
-      status = "Valid";
-      warningMessage = "Prescription Verified Successfully.";
+    if (!doctor) {
+      setStatusMessage("Doctor not found!");
+      return;
     }
 
-    setStatusMessage(warningMessage);
+    if (!doctor.medicines.includes(medicine)) {
+      setStatusMessage(`${medicine} is not typically prescribed by a ${doctor.specialization}.`);
+      return;
+    }
 
-    // Check medicine availability via API
     try {
-      const response = await fetch(`https://api.example.com/medicines?name=${medicine}`);
+      const response = await fetch(`https://api.fda.gov/drug/label.json?search=openfda.brand_name:${medicine}`);
       const data = await response.json();
 
-      if (response.ok) {
-        if (data.available) {
-          setApiStatus({ type: "valid", message: "Medicine is Available!" });
-        } else {
-          setApiStatus({ type: "error", message: "Medicine is not Available!" });
-        }
+      if (data.results && data.results.length > 0) {
+        setStatusMessage("Medicine is Available & Verified!");
       } else {
-        setApiStatus({ type: "error", message: "Error fetching data!" });
+        setStatusMessage("Medicine is not available!");
       }
-    } catch (error) {
-      setApiStatus({ type: "error", message: " API request failed!" });
+    } catch {
+      setStatusMessage("API request failed!");
     }
 
-    // Store in audit logs
+    // Log the prescription verification
     const newLog = {
       time: new Date().toLocaleString(),
+      doctor: doctor.name,
       medication: medicine,
-      status: status === "Warning" ? "⚠️ Warning" : "Valid",
+      status: statusMessage
     };
-
-    const updatedLogs = [newLog, ...auditLogs].slice(0, 10); // Keep only last 10 logs
-    setAuditLogs(updatedLogs);
-    localStorage.setItem("auditLogs", JSON.stringify(updatedLogs)); // Persist logs
+    setAuditLogs(prevLogs => [newLog, ...prevLogs]);
   };
 
-  // Load audit logs from local storage
-  useEffect(() => {
-    const storedLogs = JSON.parse(localStorage.getItem("auditLogs")) || [];
-    setAuditLogs(storedLogs);
-  }, []);
-
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">Pharmacist Dashboard</h2>
-      <form onSubmit={verifyPrescription}>
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Doctor's ID:</label>
-        <input
-          type="text"
-          value={doctorID}
-          onChange={(e) => setDoctorID(e.target.value)}
-          className="border rounded w-full p-2"
-        />
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center mb-4">Pharmacist Dashboard</h2>
+        <form className="space-y-4">
+          <input type="text" placeholder="Doctor ID" value={doctorID} onChange={e => setDoctorID(e.target.value)} className="w-full p-2 border rounded" required />
+          <input type="text" placeholder="Medicine" value={medicine} onChange={e => setMedicine(e.target.value)} className="w-full p-2 border rounded" required />
+          <button type="button" onClick={handleVerify} className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Verify Prescription</button>
+        </form>
+        <p className="text-center mt-4 text-red-600 font-semibold">{statusMessage}</p>
       </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Patient's Name:</label>
-        <input
-          type="text"
-          value={patientName}
-          onChange={(e) => setPatientName(e.target.value)}
-          className="border rounded w-full p-2"
-        />
+      
+      {/* Audit Log Section */}
+      <div className="max-w-lg mx-auto mt-6 bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-semibold mb-2">Audit Logs</h3>
+        <ul className="bg-gray-50 p-4 rounded-md">
+          {auditLogs.length === 0 ? (
+            <p className="text-gray-500">No logs available</p>
+          ) : (
+            auditLogs.map((log, index) => (
+              <li key={index} className="border-b py-2">
+                <strong>{log.time}</strong> - {log.doctor} prescribed {log.medication} - <span className="text-blue-600">{log.status}</span>
+              </li>
+            ))
+          )}
+        </ul>
       </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Medicine:</label>
-        <input
-          type="text"
-          value={medicine}
-          onChange={(e) => setMedicine(e.target.value)}
-          className="border rounded w-full p-2"
-        />
+      
+      {/* Back to Home Button */}
+      <div className="text-center mt-6">
+        <button onClick={() => navigate("/")} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Back to Home</button>
       </div>
-
-      <button
-        onClick={verifyPrescription}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-      >
-        Verify Prescription
-      </button>
-      </form>
-
-      {/* Specialization Warning/Success */}
-      {statusMessage && (
-        <div className={`mt-4 p-2 rounded text-white ${statusMessage.includes("⚠️") ? "bg-yellow-500" : "bg-green-500"}`}>
-          {statusMessage}
-        </div>
-      )}
-
-      {/* API Medicine Availability Status */}
-      {apiStatus && (
-        <p className={`mt-2 text-${apiStatus.type === "valid" ? "green" : "red"}-500`}>
-          {apiStatus.message}
-        </p>
-      )}
-
-      {/* Audit Logs */}
-      <h3 className="text-lg font-semibold mt-6">Audit Logs</h3>
-      <ul className="mt-2 bg-gray-100 p-4 rounded-md">
-        {auditLogs.length === 0 ? (
-          <p className="text-gray-500">No logs available</p>
-        ) : (
-          auditLogs.map((log, index) => (
-            <li key={index} className="border-b p-2">
-              <strong>{log.time}</strong> - {log.medication} -{" "}
-              <span className={log.status.includes("⚠️") ? "text-yellow-600" : "text-green-600"}>
-                {log.status}
-              </span>
-            </li>
-          ))
-        )}
-      </ul>
     </div>
   );
 };

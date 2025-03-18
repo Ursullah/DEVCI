@@ -37,7 +37,7 @@ const HomePage = ({ setIsAuthenticated }) => {
           </p>
           <button
             type="button" onClick={() => navigate("/login")}
-            className="bg-red-500 hovehttps://chatgpt.com/c/67d2d54f-3a4c-800d-87c3-15541f0b82abr:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 cursor-pointer mt-4"
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 cursor-pointer mt-4"
           >
           LOGIN
           </button>

@@ -144,6 +144,10 @@ const LogIn = ({ setIsAuthenticated }) => {
                         Log in
                     </button>
                 </form>
+                  {/* Back to Home Button */}
+                  <div className="text-center mt-6">
+                     <button onClick={() => navigate("/")} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded hover:bg-gray-600 transition">Back to Home</button>
+                  </div>
             </div>
         </div>
     );

@@ -35,13 +35,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Login Route */}
-        <Route path="/login" element={<LogIn setIsAuthenticated={handleAuth} />} />
-
+       
         {/* Protected Routes inside Layout */}
         <Route
           path="/"
           element={isAuthenticated ? <Layout /> : <Navigate to="/login" replace />}>
+             <Route path="/login" element={<LogIn setIsAuthenticated={handleAuth} />} />
           <Route index element={<HomePage setIsAuthenticated={handleAuth} />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
