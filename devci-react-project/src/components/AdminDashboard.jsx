@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+// import LOGOUT from './LOGOUT';
 const AdminDashboard = () => {
     const [doctors, setDoctors] = useState([]);
     const [name, setName] = useState("");
@@ -175,6 +175,7 @@ const AdminDashboard = () => {
                     Back to Home
                 </button>
             </div>
+            {/* <LOGOUT /> */}
         </div>
     );
 };

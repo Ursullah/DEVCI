@@ -44,6 +44,9 @@ function App() {
           <Route index element={<HomePage setIsAuthenticated={handleAuth} />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="doctordashboard" element={<DoctorDashboard />} />
+          <Route path="admindashboard" element={<AdminDashboard />} />
+          <Route path="pharmacistdashboard" element={<PharmacistDashboard />} />
         </Route>
 
           {isAuthenticated ? (

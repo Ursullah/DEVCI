@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LOGOUT from './LOGOUT';
 import { useNavigate } from "react-router-dom";
 
 const LogIn = ({ setIsAuthenticated }) => {
@@ -62,7 +63,7 @@ const LogIn = ({ setIsAuthenticated }) => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-00">
             <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
                 <h2 className="text-2xl font-bold text-center text-gray-700">LOGIN</h2>
 
@@ -148,7 +149,8 @@ const LogIn = ({ setIsAuthenticated }) => {
                   <div className="text-center mt-6">
                      <button onClick={() => navigate("/")} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition">Back to Home</button>
                   </div>
-            </div>
+            </div> 
+            <LOGOUT />
         </div>
     );
 };
