@@ -1,96 +1,182 @@
-import React from 'react'
-import { useState, } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
+    const [doctors, setDoctors] = useState([]);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [hospital, setHospital] = useState("");
     const [errors, setErrors] = useState({});
-
+    const [editingDoctor, setEditingDoctor] = useState(null); 
+    const [specialization, setSpecialization] = useState("")
     const navigate = useNavigate();
 
     const validate = () => {
         const validationErrors = {};
-        if (!name) {
-            validationErrors.name = "Doctor's ID is required";
-        }
+        if (!name) validationErrors.name = "Doctor's ID is required";
         if (!email) {
             validationErrors.email = "Email is required";
         } else if (!/\S+@\S+\.\S+/.test(email)) {
             validationErrors.email = "Invalid email format";
         }
-        if (!hospital) {
-            validationErrors.hospital = "Hospital name is required"
+        if (!hospital) validationErrors.hospital = "Hospital name is required";
+        if(!specialization) {
+            validationErrors.specialization = "Add doctor's specialization"
         }
+        
         setErrors(validationErrors);
         return Object.keys(validationErrors).length === 0;
     };
 
-    
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name === "name") setName(value);
         else if (name === "hospital") setHospital(value);
         else if (name === "email") setEmail(value);
+        else if (name === "specialization") setSpecialization(value);
     };
 
-    const RegisterDoctor = (e) => {
-        e.preventDefault(); // Prevent form submission
-        if (!validate()) return; // Stop execution if validation fails
-        alert("Doctor successfully registered✅")
-    }
-  return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      
-      <form onSubmit={RegisterDoctor}className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
-        <label className="block font-semibold">Doctor's ID:</label>
-        <input
-          type="text"
-          name="name"
-          onChange={handleChange}
-          placeholder="Doctor's ID"
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-        />
-        {errors.name && <span className="text-red-500 text-xs italic">{errors.name}</span>}
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validate()) return;
 
-        <label className="block font-semibold">Hospital:</label>
-        <input
-          type="text"
-          name="hospital"
-          onChange={handleChange}
-          placeholder="HospitalName"
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-        />
-        {errors.hospital && <span className="text-red-500 text-xs italic">{errors.hospital}</span>}
+        if (editingDoctor !== null) {
+            // Update existing doctor
+            const updatedDoctors = doctors.map((doc, index) =>
+                index === editingDoctor ? { name, email, hospital,specialization } : doc
+            );
+            setDoctors(updatedDoctors);
+            setEditingDoctor(null);
+        } else {
+            // Register new doctor
+            setDoctors([...doctors, { name, email, hospital, specialization }]);
+        }
 
-        <label className="block font-semibold">Email Adress:</label>
-        <input
-          type="text"
-          onChange={handleChange}
-          name="email"
-          placeholder="example@gmail.com"
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-        />
-        {errors.email && <span className="text-red-500 text-xs italic">{errors.email}</span>}
+        setName("");
+        setEmail("");
+        setHospital("");
+        setSpecialization("");
+        alert("Doctor successfully registered ✅");
+    };
 
-         <button 
-           className="bg-indigo-500 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded"
-           type="submit">
-            Register Doctor
-         </button>
-        </form>
+    const handleDelete = (index) => {
+        const updatedDoctors = doctors.filter((_, i) => i !== index);
+        setDoctors(updatedDoctors);
+    };
 
-        {/* Back to Home Button */}
-      <div className="text-center mt-6">
-        <button onClick={() => navigate("/")} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">Back to Home</button>
-      </div>
+    const handleEdit = (index) => {
+        const doctor = doctors[index];
+        setName(doctor.name);
+        setEmail(doctor.email);
+        setHospital(doctor.hospital);
+        setSpecialization(doctor.specialization);
+        setEditingDoctor(index);
+    };
 
+    return (
+        <div className="flex flex-col items-center min-h-screen bg-gray-100">
+            <h1 className="text-2xl font-bold text-center mb-4">ADMIN'S DASHBOARD</h1>
+            <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
+                <h2 className="text-lg font-bold mb-4">{editingDoctor !== null ? "Edit Doctor" : "Register Doctor"}</h2>
 
-    </div>
-  )
-}
+                <label className="block font-semibold">Doctor's ID:</label>
+                <input
+                    type="text"
+                    name="name"
+                    value={name}
+                    onChange={handleChange}
+                    placeholder="Doctor's ID"
+                    className="w-full p-2 border border-gray-300 rounded mb-4"
+                />
+                {errors.name && <span className="text-red-500 text-xs italic">{errors.name}</span>}
 
-export default AdminDashboard
-// can view audit logs
-// can register doctors
+                <label className="block font-semibold">Hospital:</label>
+                <input
+                    type="text"
+                    name="hospital"
+                    value={hospital}
+                    onChange={handleChange}
+                    placeholder="Hospital Name"
+                    className="w-full p-2 border border-gray-300 rounded mb-4"
+                />
+                {errors.hospital && <span className="text-red-500 text-xs italic">{errors.hospital}</span>}
+
+                <label className="block font-semibold">Email Address:</label>
+                <input
+                    type="email"
+                    name="email"
+                    value={email}
+                    onChange={handleChange}
+                    placeholder="example@gmail.com"
+                    className="w-full p-2 border border-gray-300 rounded mb-4"
+                />
+                {errors.email && <span className="text-red-500 text-xs italic">{errors.email}</span>}
+
+                <label className="block font-semibold">Specialization:</label>
+                <input
+                    type="name"
+                    name="specialization"
+                    value={specialization}
+                    onChange={handleChange}
+                    placeholder="General Practitioner"
+                    className="w-full p-2 border border-gray-300 rounded mb-4"
+                />
+                {errors.specialization && <span className="text-red-500 text-xs italic">{errors.specialization}</span>}
+
+                <button 
+                    className="bg-indigo-500 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded w-full"
+                    type="submit"
+                >
+                    {editingDoctor !== null ? "Update Doctor" : "Register Doctor"}
+                </button>
+            </form>
+
+            {/* Doctors List */}
+            <div className="w-full max-w-2xl mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <h2 className="text-lg font-bold mb-4">Registered Doctors</h2>
+                {doctors.length === 0 ? (
+                    <p className="text-gray-500">No doctors registered.</p>
+                ) : (
+                    <ul>
+                        {doctors.map((doctor, index) => (
+                            <li key={index} className="flex justify-between items-center border-b py-2">
+                                <div>
+                                    <p><strong>ID:</strong> {doctor.name}</p>
+                                    <p><strong>Hospital:</strong> {doctor.hospital}</p>
+                                    <p><strong>Email:</strong> {doctor.email}</p>
+                                    <p><strong>Specialization:</strong>{doctor.specialization}</p>
+                                </div>
+                                <div>
+                                    <button 
+                                        onClick={() => handleEdit(index)}
+                                        className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-700"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(index)}
+                                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+
+            {/* Back to Home Button */}
+            <div className="text-center mt-6">
+                <button 
+                    onClick={() => navigate("/")} 
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+                >
+                    Back to Home
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default AdminDashboard;

@@ -18,7 +18,7 @@ const HomePage = ({ setIsAuthenticated }) => {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-slate-800 flex items-center justify-center px-8">
+    <div className="relative w-full min-h-screen bg-slate-900 flex items-center justify-center px-8">
       <div className="max-w-5xl w-full flex flex-col md:flex-row items-center text-white">
         
         {/* Text Section */}
