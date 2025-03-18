@@ -8,6 +8,7 @@ import ContactPage from "./components/ContactPage";
 import PharmacistDashboard from "./components/PharmacistDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import DoctorDashboard from "./components/DoctorDashboard";
+import Footer from "./components/Footer";
 
 
 function App() {
@@ -34,6 +35,8 @@ function App() {
 
   return (
     <Router>
+      <div className="flex flex-col min-h-screen">
+        <div className="flex-gorw">
       <Routes>
        
         {/* Protected Routes inside Layout */}
@@ -59,6 +62,9 @@ function App() {
             <Route path="*" element={<Navigate to="/login" replace />} />
            )}
       </Routes>
+      </div>
+      <Footer />
+      </div>
     </Router>
   );
 }

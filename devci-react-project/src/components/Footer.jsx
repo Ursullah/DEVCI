@@ -1,14 +1,11 @@
-import React from 'react'
 
 const Footer = () => {
-  return (
-    <div>
-         {/* Footer */}
-         <footer className="w-full py-4 bg-gray-800 text-center text-sm text-gray-400">
-        &copy; {new Date().getFullYear()} Prescription Verifier. All rights reserved.
+    return (
+      <footer className="bg-gray-800 text-white text-center p-4">
+        <p>&copy; {new Date().getFullYear()} Pharmacy Management System. All Rights Reserved.</p>
       </footer>
-    </div>
-  )
-}
-
-export default Footer
+    );
+  };
+  
+  export default Footer;
+  

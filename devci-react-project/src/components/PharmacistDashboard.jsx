@@ -88,8 +88,9 @@ const PharmacistDashboard = () => {
         {/* Prescription list */}
         <div className="bg-white p-4 shadow rounded mb-6">
           <h3 className="text-lg font-semibold">Prescription</h3>
-          {prescriptions.length === 0 ?(
-            <p>No prescriptions available.</p>
+          {filteredPrescriptions.length === 0 ?( search ? (
+            <p>No matching patient found.</p>):(
+            <p>No prescriptions available.</p>)
           ) : (
             filteredPrescriptions.map((prescription) => (
               <div key={prescription._id} className="p-3 border-b">
