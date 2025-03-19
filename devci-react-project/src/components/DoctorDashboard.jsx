@@ -8,6 +8,7 @@ const DoctorDashboard = () => {
   const [info, setInfo] = useState("");
   const [medication, setMedication] = useState("");
   const [dosage, setDosage] = useState("");
+  const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
 
   const validate = () => {
@@ -134,6 +135,14 @@ const DoctorDashboard = () => {
           </select>
           {errors.dosage && <span className="text-red-500 text-sm">{errors.dosage}</span>}
         </div>
+        <textarea
+          name="message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Instructions for medication"
+          className="w-full p-2 border border-gray-300 rounded mb-4"
+        ></textarea>
+        {errors.message && <span className="text-red-500 text-sm">{errors.message}</span>}
 
         <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
           Set Prescription

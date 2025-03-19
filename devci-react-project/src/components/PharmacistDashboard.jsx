@@ -27,11 +27,11 @@ const PharmacistDashboard = () => {
       })
       .catch((error) => console.error("Error fetching presciptions:", error));
 
-      const role = localStorage.getItem("role");
-      if(role !== "pharmacist"){
-        alert("Unauthorized Access! Redirecting to login");
-        navigate("/login");
-      }
+      // const role = localStorage.getItem("role");
+      // if(role !== "pharmacist"){
+      //   alert("Unauthorized Access! Redirecting to login");
+      //   navigate("/login");
+      // }
     },[]);
    
     //filter prescriptions based on search
