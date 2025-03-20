@@ -50,7 +50,6 @@ function App() {
           <Route path="doctordashboard" element={<DoctorDashboard />} />
           <Route path="admindashboard" element={<AdminDashboard />} />
           <Route path="pharmacistdashboard" element={<PharmacistDashboard />} />
-        </Route>
 
           {isAuthenticated ? (
             <>
@@ -61,6 +60,7 @@ function App() {
            ) : (
             <Route path="*" element={<Navigate to="/login" replace />} />
            )}
+        </Route>
       </Routes>
       </div>
       <Footer />
