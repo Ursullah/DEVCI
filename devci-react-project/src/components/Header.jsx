@@ -30,7 +30,7 @@ const Header = ({ setIsAuthenticated }) => {
 
   return (
     
-    <header className="relative bg-gray-900 text-white py-4 px-6 flex justify-between items-center shadow-md z-50">
+    <header className="relative bg-gray-400 text-white py-4 px-6 flex justify-between items-center shadow-md z-50">
       <h2 className="text-2xl font-bold">DEVCI</h2>
 
       {/* Centered Navigation */}

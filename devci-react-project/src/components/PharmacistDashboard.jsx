@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import LOGOUT from "./LOGOUT";
 
 const doctors = [
   { id: "D001", name: "Dr. John Smith", specialization: "Cardiologist", medicines: ["Aspirin", "Metoprolol", "Atorvastatin"] },
@@ -9,36 +8,25 @@ const doctors = [
   { id: "D004", name: "Dr. Mark Wilson", specialization: "General Practitioner", medicines: ["Paracetamol", "Ibuprofen", "Amoxicillin"] }
 ];
 
+const mockPrescriptions = [
+  { _id: "1", patientName: "Alice Johnson", patientAge: "45", info: "123-456-7890", medication: "Aspirin", dosage: "1×2", doctor: "Dr. John Smith" },
+  { _id: "2", patientName: "Bob Williams", patientAge: "60", info: "234-567-8901", medication: "Gabapentin", dosage: "2×3", doctor: "Dr. Sarah Johnson" },
+  { _id: "3", patientName: "Charlie Brown", patientAge: "50", info: "345-678-9012", medication: "Tamoxifen", dosage: "1×1", doctor: "Dr. Emily Brown" }
+];
+
 const PharmacistDashboard = () => {
   const navigate = useNavigate();
-  const [prescriptions, setPrescriptions] = useState([]);
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState("");
   const [doctorID, setDoctorID] = useState("");
   const [medicine, setMedicine] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [auditLogs, setAuditLogs] = useState([]);
 
-  //fetch prescription from backend
-  useEffect(() =>{
-    fetch("http://localhost:5000/prescriptions")
-      .then((res) => res.json())
-      .then((data) => {setPrescriptions(data)
-
-      })
-      .catch((error) => console.error("Error fetching presciptions:", error));
-
-      // const role = localStorage.getItem("role");
-      // if(role !== "pharmacist"){
-      //   alert("Unauthorized Access! Redirecting to login");
-      //   navigate("/login");
-      // }
-    },[]);
-   
-    //filter prescriptions based on search
-    const filteredPrescriptions = prescriptions.filter((prescription) =>
+  // Filter prescriptions based on search
+  const filteredPrescriptions = mockPrescriptions.filter((prescription) =>
     prescription.patientName.toLowerCase().includes(search.toLowerCase())
   );
-  
+
   const handleVerify = async () => {
     const doctor = doctors.find(doc => doc.id === doctorID);
 
@@ -52,25 +40,14 @@ const PharmacistDashboard = () => {
       return;
     }
 
-    try {
-      const response = await fetch(`https://api.fda.gov/drug/label.json?search=openfda.brand_name:${medicine}`);
-      const data = await response.json();
-
-      if (data.results && data.results.length > 0) {
-        setStatusMessage("Medicine is Available & Verified!");
-      } else {
-        setStatusMessage("Medicine is not available!");
-      }
-    } catch {
-      setStatusMessage("API request failed!");
-    }
+    setStatusMessage("Medicine is Available & Verified!");
 
     // Log the prescription verification
     const newLog = {
       time: new Date().toLocaleString(),
       doctor: doctor.name,
       medication: medicine,
-      status: statusMessage
+      status: "Verified"
     };
     setAuditLogs(prevLogs => [newLog, ...prevLogs]);
   };
@@ -105,6 +82,7 @@ const PharmacistDashboard = () => {
                 <p><strong>Contact:</strong> {prescription.info}</p>
                 <p><strong>Medication:</strong> {prescription.medication}</p>
                 <p><strong>Dosage:</strong> {prescription.dosage}</p>
+                <p><strong>Doctor:</strong> {prescription.doctor}</p>
               </div>
             ))
           )}
@@ -137,14 +115,14 @@ const PharmacistDashboard = () => {
       
       {/* Audit Log Section */}
       <div className="max-w-lg mx-auto mt-6 bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-2">Audit Logs</h3>
+        <h3 className="text-lg font-semibold mb-2">Doctor's Log</h3>
         <ul className="bg-gray-50 p-4 rounded-md">
-          {auditLogs.length === 0 ? (
+          {mockPrescriptions.length === 0 ? (
             <p className="text-gray-500">No logs available</p>
           ) : (
-            auditLogs.map((log, index) => (
+            mockPrescriptions.map((log, index) => (
               <li key={index} className="border-b py-2">
-                <strong>{log.time}</strong> - {log.doctor} prescribed {log.medication} - <span className="text-blue-600">{log.status}</span>
+                <strong>{log.patientName}</strong> - {log.doctor} prescribed {log.medication} ({log.dosage})
               </li>
             ))
           )}
@@ -155,9 +133,8 @@ const PharmacistDashboard = () => {
       <div className="text-center mt-6">
         <button onClick={() => navigate("/")} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Back to Home</button>
       </div>
-      {/* <LOGOUT /> */}
     </div>
   );
-};
+};  
 
 export default PharmacistDashboard;

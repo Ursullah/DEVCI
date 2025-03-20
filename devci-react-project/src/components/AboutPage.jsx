@@ -5,8 +5,8 @@ const AboutPage = () => {
   const navigate = useNavigate(); 
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 p-6 text-white">
-      <header className=" bg-red-700 py-6 text-center shadow-md rounded-4xl">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-400 p-6 text-white">
+      <header className=" py-6 text-center ">
         <h1 className="text-4xl font-bold mb-4">ABOUT US</h1>
       </header>
 

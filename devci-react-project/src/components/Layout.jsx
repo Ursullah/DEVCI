@@ -8,10 +8,9 @@ const Layout = () => {
         <h1 className="font-bold text-3xl text-black">DEVCI</h1>
         <nav>
           <ul className="flex space-x-4">
-            <li><Link to="/" className="hover:underline text-2xl text-black font-bold">Home</Link></li>
-            <li><Link to="/about" className="hover:underline text-2xl text-black font-bold">About</Link></li>
-            <li><Link to="/contact" className="hover:underline text-2xl text-black font-bold">Contact</Link></li>
-            <li><Link to="/login" className="hover:underline text-2xl text-black font-bold">LOGIN</Link></li>
+            <li><Link to="/" className="hover:underline text-2xl text-white font-bold">Home</Link></li>
+            <li><Link to="/about" className="hover:underline text-2xl text-white font-bold">About</Link></li>
+            <li><Link to="/contact" className="hover:underline text-2xl text-white font-bold">Contact</Link></li>
           </ul>
         </nav>
       </header>

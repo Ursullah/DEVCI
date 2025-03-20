@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LOGOUT from "./LOGOUT";
-
 
 const DoctorDashboard = () => {
   const [patientName, setPatientName] = useState("");
@@ -10,6 +9,13 @@ const DoctorDashboard = () => {
   const [dosage, setDosage] = useState("");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
+  const [prescriptions, setPrescriptions] = useState([]);
+
+  // Load prescriptions from localStorage on component mount
+  useEffect(() => {
+    const storedPrescriptions = JSON.parse(localStorage.getItem("prescriptions")) || [];
+    setPrescriptions(storedPrescriptions);
+  }, []);
 
   const validate = () => {
     const validationErrors = {};
@@ -23,7 +29,6 @@ const DoctorDashboard = () => {
     return Object.keys(validationErrors).length === 0;
   };
 
-  
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "patientName") setPatientName(value);
@@ -36,33 +41,36 @@ const DoctorDashboard = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
+
+    const newPrescription = {
+      id: Date.now(),
+      doctorName: "Dr. John Doe", // Replace with actual doctor's name if available
+      patientName,
+      patientAge,
+      contact: info,
+      medication,
+      dosage,
+      instructions: message,
+    };
+
+    const updatedPrescriptions = [...prescriptions, newPrescription];
+    setPrescriptions(updatedPrescriptions);
+    localStorage.setItem("prescriptions", JSON.stringify(updatedPrescriptions));
+
     alert("Patient prescription is saved ✅");
+
+    // Clear input fields
+    setPatientName("");
+    setPatientAge("");
+    setInfo("");
+    setMedication("");
+    setDosage("");
+    setMessage("");
   };
 
-  //sends presciption to backend
-  //   const newPrescription = {patientName, patientAge, info, medication,dosage}
-  //   try{
-  //     const response = await fetch("",{
-  //         method:"POST",
-  //         headers:{"Content-type": "application/json"},
-  //         body: JSON.stringify(newPrescription)
-  //     });
-  //     if (response.ok){
-  //         alert("Prescription saved!");
-  //     } else{
-  //         alert("Failed to save prescription!")
-    
-  //     } 
-  //    catch(error){
-  //         console("Error saving prescription:", error)
-  //     }
-
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
-      >
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 flex-col">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6">Doctor's Prescription</h2>
 
         <div className="mb-4">
@@ -126,15 +134,16 @@ const DoctorDashboard = () => {
             className="w-full p-2 border border-gray-300 rounded mt-1"
           >
             <option value="">Select dosage</option>
-            <option value="1*2">1×2</option>
-            <option value="2*2">2×2</option>
-            <option value="2*3">2×3</option>
-            <option value="2*4">2×4</option>
-            <option value="3*3">3×3</option>
-            <option value="3*1">3×1</option>
+            <option value="1×2">1×2</option>
+            <option value="2×2">2×2</option>
+            <option value="2×3">2×3</option>
+            <option value="2×4">2×4</option>
+            <option value="3×3">3×3</option>
+            <option value="3×1">3×1</option>
           </select>
           {errors.dosage && <span className="text-red-500 text-sm">{errors.dosage}</span>}
         </div>
+
         <textarea
           name="message"
           value={message}
@@ -142,14 +151,37 @@ const DoctorDashboard = () => {
           placeholder="Instructions for medication"
           className="w-full p-2 border border-gray-300 rounded mb-4"
         ></textarea>
-        {errors.message && <span className="text-red-500 text-sm">{errors.message}</span>}
 
         <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
           Set Prescription
         </button>
       </form>
+
+      {/* Patient Logs - View Saved Prescriptions */}
+      <div className="w-full max-w-2xl mt-8 bg-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-lg font-bold mb-4">Patient Logs</h2>
+        {prescriptions.length === 0 ? (
+          <p className="text-gray-500">No prescriptions recorded yet.</p>
+        ) : (
+          <ul>
+            {prescriptions.map((prescription) => (
+              <li key={prescription.id} className="border-b py-2">
+                <p><strong>Doctor:</strong> {prescription.doctorName}</p>
+                <p><strong>Patient:</strong> {prescription.patientName}</p>
+                <p><strong>Age:</strong> {prescription.patientAge}</p>
+                <p><strong>Contact:</strong> {prescription.contact}</p>
+                <p><strong>Medication:</strong> {prescription.medication}</p>
+                <p><strong>Dosage:</strong> {prescription.dosage}</p>
+                <p><strong>Instructions:</strong> {prescription.instructions || "N/A"}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <LOGOUT />
     </div>
   );
-}
+};
+
 export default DoctorDashboard;

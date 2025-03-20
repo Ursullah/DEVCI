@@ -14,32 +14,13 @@ const AdminDashboard = () => {
     const [prescriptions, setPrescriptions] = useState([]);
     const navigate = useNavigate();
 
-    // Fetch data from the backend
-    const fetchDoctors = () => {
-        fetch("http://localhost:5000/doctors")
-            .then((res) => res.json())
-            .then((data) => setDoctors(data))
-            .catch((err) => console.error("Error fetching doctors:", err));
-
-        fetch("http://localhost:5000/audit-logs")
-            .then((res) => res.json())
-            .then((data) => setAuditLogs(data))
-            .catch((err) => console.error("Error fetching audit logs:", err));
-
-        fetch("http://localhost:5000/prescriptions")
-            .then((res) => res.json())
-            .then((data) => setPrescriptions(data))
-            .catch((err) => console.error("Error fetching prescriptions:", err));
-    };
-
-    // Protect admin dashboard
+    // Fetch data from localStorage on component mount
     useEffect(() => {
-        // const role = localStorage.getItem("role");
-        // if (role !== "admin") {
-        //     alert("Unauthorized access! Redirecting to login");
-        //     navigate("/login");
-        // }
-        fetchDoctors();
+        const storedAuditLogs = JSON.parse(localStorage.getItem("auditLogs")) || [];
+        setAuditLogs(storedAuditLogs);
+
+        const storedPrescriptions = JSON.parse(localStorage.getItem("prescriptions")) || [];
+        setPrescriptions(storedPrescriptions);
     }, []);
 
     const validate = () => {
@@ -51,7 +32,7 @@ const AdminDashboard = () => {
             validationErrors.email = "Invalid email format";
         }
         if (!hospital) validationErrors.hospital = "Hospital name is required";
-        if (!specialization) validationErrors.specialization = "Add doctor's specialization";
+        if (!specialization) validationErrors.specialization = "Specialization is required";
 
         setErrors(validationErrors);
         return Object.keys(validationErrors).length === 0;
@@ -65,47 +46,29 @@ const AdminDashboard = () => {
         else if (name === "specialization") setSpecialization(value);
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         if (!validate()) return;
 
-        const doctorData = { name, email, hospital, specialization };
+        const doctorData = { id: Date.now(), name, email, hospital, specialization };
 
         if (editingDoctor !== null) {
-            // Send PUT request to update doctor
-            await fetch(`http://localhost:5000/doctors/${editingDoctor}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(doctorData),
-            });
-
+            setDoctors(doctors.map(doc => doc.id === editingDoctor ? doctorData : doc));
+            setEditingDoctor(null);
             alert("Doctor updated successfully!");
         } else {
-            // Send POST request to register a new doctor
-            await fetch("http://localhost:5000/doctors", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(doctorData),
-            });
-
-            alert("Doctor registered successfully!");
+            setDoctors([...doctors, doctorData]);
         }
+
         setName("");
         setEmail("");
         setHospital("");
         setSpecialization("");
-        fetchDoctors(); // Refresh doctor list
     };
 
-    const handleDelete = async (doctorId) => {
+    const handleDelete = (doctorId) => {
         if (!window.confirm("Are you sure you want to delete this doctor?")) return;
-
-        await fetch(`http://localhost:5000/doctors/${doctorId}`, {
-            method: "DELETE",
-        });
-
-        alert("Doctor deleted successfully");
-        fetchDoctors(); // Refresh doctor list
+        setDoctors(doctors.filter(doc => doc.id !== doctorId));
     };
 
     const handleEdit = (doctorId) => {
@@ -122,23 +85,25 @@ const AdminDashboard = () => {
     return (
         <div className="flex flex-col items-center min-h-screen bg-gray-100">
             <h1 className="text-2xl font-bold text-center mb-4">ADMIN'S DASHBOARD</h1>
+
+            {/* Doctor Registration Form */}
             <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-lg font-bold mb-4">{editingDoctor !== null ? "Edit Doctor" : "Register Doctor"}</h2>
 
                 <label className="block font-semibold">Doctor's ID:</label>
-                <input type="text" name="name" value={name} onChange={handleChange} placeholder="Doctor's ID" className="w-full p-2 border border-gray-300 rounded mb-4" />
+                <input type="text" name="name" value={name} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.name && <span className="text-red-500 text-xs italic">{errors.name}</span>}
 
                 <label className="block font-semibold">Hospital:</label>
-                <input type="text" name="hospital" value={hospital} onChange={handleChange} placeholder="Hospital Name" className="w-full p-2 border border-gray-300 rounded mb-4" />
+                <input type="text" name="hospital" value={hospital} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.hospital && <span className="text-red-500 text-xs italic">{errors.hospital}</span>}
 
                 <label className="block font-semibold">Email Address:</label>
-                <input type="email" name="email" value={email} onChange={handleChange} placeholder="example@gmail.com" className="w-full p-2 border border-gray-300 rounded mb-4" />
+                <input type="email" name="email" value={email} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.email && <span className="text-red-500 text-xs italic">{errors.email}</span>}
 
                 <label className="block font-semibold">Specialization:</label>
-                <input type="text" name="specialization" value={specialization} onChange={handleChange} placeholder="General Practitioner" className="w-full p-2 border border-gray-300 rounded mb-4" />
+                <input type="text" name="specialization" value={specialization} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.specialization && <span className="text-red-500 text-xs italic">{errors.specialization}</span>}
 
                 <button className="bg-indigo-500 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded w-full" type="submit">
@@ -171,7 +136,6 @@ const AdminDashboard = () => {
                 )}
             </div>
 
-            
             {/* Pharmacist Audit Logs */}
             <div className="w-full max-w-2xl mt-8 bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-lg font-bold mb-4">Pharmacist Audit Logs</h2>
@@ -184,7 +148,7 @@ const AdminDashboard = () => {
                                 <p><strong>Pharmacist:</strong> {log.pharmacistName}</p>
                                 <p><strong>Medication Issued:</strong> {log.medication}</p>
                                 <p><strong>Transaction Status:</strong> {log.status}</p>
-                                <p><strong>Time:</strong> {new Date(log.timestamp).toLocaleString()}</p>
+                                <p><strong>Time:</strong> {log.time}</p>
                             </li>
                         ))}
                     </ul>
@@ -204,12 +168,12 @@ const AdminDashboard = () => {
                                 <p><strong>Patient:</strong> {prescription.patientName}</p>
                                 <p><strong>Medication:</strong> {prescription.medication}</p>
                                 <p><strong>Dosage:</strong> {prescription.dosage}</p>
-                                <p><strong>Date:</strong> {new Date(prescription.date).toLocaleDateString()}</p>
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
+
             <LOGOUT />
         </div>
     );
