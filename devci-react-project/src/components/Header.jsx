@@ -35,9 +35,9 @@ const Header = ({ setIsAuthenticated }) => {
 
       {/* Centered Navigation */}
       <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-6">
-        <Link to="/home" className="hover:text-blue-400 transition duration-200">Home</Link>
-        <Link to="/about" className="hover:text-blue-400 transition duration-200">About Us</Link>
-        <Link to="/contact" className="hover:text-blue-400 transition duration-200">Contact</Link>
+        <Link to="/home" className=" transition duration-200">Home</Link>
+        <Link to="/about" className=" transition duration-200">About Us</Link>
+        <Link to="/contact" className=" transition duration-200">Contact</Link>
         
         {/* Dropdown Menu */}
         <div className="relative">
