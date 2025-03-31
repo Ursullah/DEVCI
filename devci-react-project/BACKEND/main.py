@@ -67,7 +67,7 @@ if __name__ == "__main__":
                 print("Invalid credentials!")
                 
         elif choice == '3':
-            print("Exiting........")
+            print("Exiting...")
             break
             
         else:
