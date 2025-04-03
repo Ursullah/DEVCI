@@ -1,0 +1,12 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Backend+Frontend",
+            "group": "Database",
+            "database": "database.py"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
