@@ -17,15 +17,23 @@ def require_role(required_role):
 
 def init_db():
     with sqlite3.connect('pharmacy.db') as conn:
-        # conn = sqlite3('pharmacy.db')
         cursor = conn.cursor()
+        
+        # Check if the prescriptions table exists
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='prescriptions';")
+        table_exists = cursor.fetchone()
+
+        if table_exists:
+            print("Dropping existing prescriptions table...")
+            cursor.execute("DROP TABLE prescriptions;")
+
         cursor.executescript('''
             PRAGMA foreign_keys = ON;
 
             -- Core Tables
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL UNIQUE,
+                email TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 role TEXT NOT NULL CHECK(role IN ('pharmacist', 'admin', 'doctor', 'patient'))
             );
@@ -61,21 +69,32 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
 
-            -- Prescriptions
+            -- Patient Table
+            CREATE TABLE IF NOT EXISTS patients (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                full_name TEXT NOT NULL,
+                date_of_birth DATE,
+                contact_number TEXT,
+                address TEXT,
+                medical_history TEXT
+            );
+
+            -- Create the updated prescriptions table
             CREATE TABLE IF NOT EXISTS prescriptions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                patient_id INTEGER NOT NULL REFERENCES users(id),
-                doctor_id INTEGER NOT NULL REFERENCES users(id),
-                medicine_id INTEGER NOT NULL REFERENCES medicines(id),
+                doctor_id INTEGER NOT NULL,
+                patient_id INTEGER NOT NULL,
+                medicine_name TEXT NOT NULL,
                 dosage TEXT NOT NULL,
-                status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'filled', 'rejected')),
-                pharmacist_id INTEGER REFERENCES users(id),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                status TEXT DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (doctor_id) REFERENCES users (id),
+                FOREIGN KEY (patient_id) REFERENCES patients (id)
             );
         ''')
         conn.commit()
 
-def register_user(username, password, role, **kwargs):
+def register_user(email, password, role, **kwargs):
     hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     
     with sqlite3.connect('pharmacy.db') as conn:
@@ -83,9 +102,9 @@ def register_user(username, password, role, **kwargs):
         
         # 1. Insert into users table
         cursor.execute('''
-            INSERT INTO users (username, password_hash, role)
+            INSERT INTO users (email, password_hash, role)
             VALUES (?, ?, ?)
-        ''', (username, hashed_pw, role))
+        ''', (email, hashed_pw, role))
         
         user_id = cursor.lastrowid
         
@@ -110,14 +129,22 @@ def register_user(username, password, role, **kwargs):
         
         conn.commit()
 
-def login(username, password):
+def login(email, password):
     with sqlite3.connect('pharmacy.db') as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT id, password_hash, role FROM users WHERE username = ?
-        ''', (username,))
+            SELECT id, password_hash, role FROM users WHERE email = ?
+        ''', (email,))
         user = cursor.fetchone()
         
         if user and bcrypt.checkpw(password.encode(), user[1].encode()):
             return {'id': user[0], 'role': user[2]}
         return None
+
+def add_patient(full_name, date_of_birth, contact_number, address, medical_history):
+    # Code to insert a new patient record into the database
+    pass
+
+def get_patient_by_name(full_name):
+    # Code to retrieve a patient record by name
+    pass

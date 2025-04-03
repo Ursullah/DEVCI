@@ -21,17 +21,28 @@ def doctor_dashboard(user):
 
 def write_prescription(doctor):
     print("\n--- New Prescription ---")
-    patient_id = input("Patient ID: ")
-    medicine_id = input("Medicine ID: ")
+    patient_name = input("Patient full name: ")
+    medicine_name = input("Medication name: ")
     dosage = input("Dosage: ")
 
     with sqlite3.connect('pharmacy.db') as db:
         cursor = db.cursor()
+        # Verify if the patient exists in the patients table
+        cursor.execute('SELECT id FROM patients WHERE full_name = ?', (patient_name,))
+        patient = cursor.fetchone()
+        
+        if not patient:
+            print("❌ Error: No patient found with this name.")
+            return
+        
+        patient_id = patient[0]
+        
+        # Insert the prescription
         cursor.execute('''
             INSERT INTO prescriptions 
-            (doctor_id, patient_id, medicine_id, dosage, status)
+            (doctor_id, patient_id, medicine_name, dosage, status)
             VALUES (?, ?, ?, ?, 'pending')
-        ''', (doctor['id'], patient_id, medicine_id, dosage))
+        ''', (doctor['id'], patient_id, medicine_name, dosage))
         db.commit()
     print("✅ Prescription created successfully!")
 
@@ -39,12 +50,19 @@ def view_prescriptions(doctor):
     with sqlite3.connect('pharmacy.db') as db:
         cursor = db.cursor()
         cursor.execute('''
-            SELECT id, patient_id, medicine_id, dosage, status, created_at 
-            FROM prescriptions 
-            WHERE doctor_id = ?
-            ORDER BY created_at DESC
+            SELECT 
+                p.id, 
+                pt.full_name AS patient_name, 
+                p.medicine_name, 
+                p.dosage, 
+                p.status, 
+                p.created_at 
+            FROM prescriptions p
+            JOIN patients pt ON p.patient_id = pt.id
+            WHERE p.doctor_id = ?
+            ORDER BY p.created_at DESC
         ''', (doctor['id'],))
         
         print("\nYour Recent Prescriptions:")
         for rx in cursor.fetchall():
-            print(f"{rx[5]} | Patient ID: {rx[1]} | Medicine ID: {rx[2]} | Dosage: {rx[3]} | Status: {rx[4]} (ID: {rx[0]})")
+            print(f"{rx[5]} | Patient name: {rx[1]} | Medicine: {rx[2]} | Dosage: {rx[3]} | Status: {rx[4]} (ID: {rx[0]})")
