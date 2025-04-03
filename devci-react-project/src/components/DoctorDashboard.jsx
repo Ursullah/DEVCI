@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import LOGOUT from "./LOGOUT";
 
 const DoctorDashboard = () => {
@@ -11,10 +12,22 @@ const DoctorDashboard = () => {
   const [errors, setErrors] = useState({});
   const [prescriptions, setPrescriptions] = useState([]);
 
-  // Load prescriptions from localStorage on component mount
+  // Fetch prescriptions from backend using Axios
   useEffect(() => {
-    const storedPrescriptions = JSON.parse(localStorage.getItem("prescriptions")) || [];
-    setPrescriptions(storedPrescriptions);
+    const fetchPrescriptions = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/prescriptions",
+          patientName, patientAge, info, medication, dosage,
+          {
+          headers: {"Content-Type": "application/json"},
+        });
+        setPrescriptions(response.data);
+      } catch (err) {
+        console.error("Error fetching prescriptions:", err);
+      }
+    };
+
+    fetchPrescriptions();
   }, []);
 
   const validate = () => {
@@ -38,12 +51,11 @@ const DoctorDashboard = () => {
     else if (name === "dosage") setDosage(value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     const newPrescription = {
-      id: Date.now(),
       doctorName: "Dr. John Doe", // Replace with actual doctor's name if available
       patientName,
       patientAge,
@@ -53,19 +65,22 @@ const DoctorDashboard = () => {
       instructions: message,
     };
 
-    const updatedPrescriptions = [...prescriptions, newPrescription];
-    setPrescriptions(updatedPrescriptions);
-    localStorage.setItem("prescriptions", JSON.stringify(updatedPrescriptions));
+    try {
+      const response = await axios.post("http://localhost:5000/api/prescriptions", newPrescription);
+      setPrescriptions([...prescriptions, response.data]);
 
-    alert("Patient prescription is saved ✅");
+      alert("Patient prescription is saved ✅");
 
-    // Clear input fields
-    setPatientName("");
-    setPatientAge("");
-    setInfo("");
-    setMedication("");
-    setDosage("");
-    setMessage("");
+      // Clear input fields
+      setPatientName("");
+      setPatientAge("");
+      setInfo("");
+      setMedication("");
+      setDosage("");
+      setMessage("");
+    } catch (error) {
+      console.error("Error saving prescription:", error);
+    }
   };
 
   return (

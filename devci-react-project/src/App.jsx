@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { useEffect, useState } from "react";
 import Layout from "./components/Layout"; // Import Layout
 import LogIn from "./components/LogIn";
+import RegisterUser from "./components/RegisterUser";
 import HomePage from "./components/HomePage";
 import AboutPage from "./components/AboutPage";
 import ContactPage from "./components/ContactPage";
@@ -36,7 +37,7 @@ function App() {
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
-        <div className="flex-gorw">
+        <div className="flex-grow">
       <Routes>
        
         {/* Protected Routes inside Layout */}
@@ -47,6 +48,7 @@ function App() {
           <Route index element={<HomePage setIsAuthenticated={handleAuth} />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="register" element={<RegisterUser/>} />
           <Route path="doctordashboard" element={<DoctorDashboard />} />
           <Route path="admindashboard" element={<AdminDashboard />} />
           <Route path="pharmacistdashboard" element={<PharmacistDashboard />} />

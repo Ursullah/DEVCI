@@ -1,187 +1,122 @@
-import React, { useState } from 'react';
-import LOGOUT from './LOGOUT';
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Import Axios
+// import LOGOUT from "./LOGOUT";  // Unused import, consider removing
 
-const LogIn = ({ setIsAuthenticated }) => {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
-    const [errors, setErrors] = useState({});
-    const [role, setRole] = useState(""); // Role state added
-    const navigate = useNavigate();
+const Login = ({ setIsAuthenticated }) => {
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const validate = () => {
-        const validationErrors = {};
-        if (!username) {
-            validationErrors.username = "Username is required";
-        }
-        if (!email) {
-            validationErrors.email = "Email is required";
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            validationErrors.email = "Invalid email format";
-        }
-        if (!password) {
-            validationErrors.password = "Password is required";
-        } else if (password.length < 8) {
-            validationErrors.password = "Password should be at least 8 characters long";
-        }
-        if (!role) {
-            validationErrors.role = "Role selection is required";
-        }
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-        setErrors(validationErrors);
-        return Object.keys(validationErrors).length === 0;
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        if (name === "username") setUsername(value);
-        else if (name === "email") setEmail(value);
-        else if (name === "password") setPassword(value);
-    };
+    try {
+      // Make a POST request to the backend login endpoint
+      const response = await axios.post('http://localhost:5000/api/login', formData);
+      setIsAuthenticated(true);
+      
+      // Navigate based on user role
+      const user = response.data.user; // Adjust based on your backend response structure
+      localStorage.setItem("role", user.role);
+      
+      if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (user.role === "doctor") {
+        navigate("/doctor-dashboard");
+      } else if (user.role === "pharmacist") {
+        navigate("/pharmacist-dashboard");
+      } else {
+        navigate("/");
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || "Login failed. Please try again.");
+      
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleLogin = async (e) => {
-        e.preventDefault(); // Prevent form submission
-        if (!validate()) return; // Stop execution if validation fails
-
-        // console.log("Selected Role:", role);
-
-        try {
-            const response = await fetch("http://localhost:5000/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })  // Only send email and password
-            });
-    
-            const data = await response.json();
-    
-            if (response.ok) {
-                setIsAuthenticated(true);
-                localStorage.setItem("auth", "true");
-                localStorage.setItem("token", data.token);  // Store JWT token
-                localStorage.setItem("role", data.role);    // Store role from backend
-    
-                if (data.role === "Doctor") {
-                    navigate("/doctor-dashboard");
-                } else if (data.role === "Pharmacist") {
-                    navigate("/pharmacist-dashboard");
-                } else if (data.role === "Admin") {
-                    navigate("/admin-dashboard");
-                }
-            } else {
-                setErrors({ login: data.message });  // Display error message from backend
-            }
-        } catch (error) {
-            setErrors({ login: "Server error. Try again later." });
-        }
-
-        setIsAuthenticated(true);
-        localStorage.setItem("auth", "true");
-        localStorage.setItem("role", role); // Store role in localStorage
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-400 px-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
         
-        if (role === "Doctor") {
-            navigate("/doctor-dashboard");
-        } else if (role === "Pharmacist") {
-            navigate("/pharmacist-dashboard");
-        } else if (role === "Admin") {
-            navigate("/admin-dashboard");
-        } else {
-            navigate("/home");
-        }
-    };
-
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-400">
-            <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
-                <h2 className="text-2xl font-bold text-center text-gray-700">LOGIN</h2>
-
-                <form onSubmit={handleLogin} className="mt-4">
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-600">Username:</label>
-                        <input
-                            className="border rounded w-full py-2 px-3"
-                            type="text"
-                            name="username"
-                            value={username}
-                            onChange={handleChange}
-                            placeholder="Enter username"
-                        />
-                        {errors.username && <span className="text-red-500 text-xs italic">{errors.username}</span>}
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-600">Email:</label>
-                        <input
-                            className="border rounded w-full py-2 px-3"
-                            type="text"
-                            name="email"
-                            value={email}
-                            onChange={handleChange}
-                            placeholder="example@email.com"
-                        />
-                        {errors.email && <span className="text-red-500 text-xs italic">{errors.email}</span>}
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-600">Password:</label>
-                        <input
-                            className="border rounded w-full py-2 px-3"
-                            type="password"
-                            name="password"
-                            value={password}
-                            onChange={handleChange}
-                            placeholder="********"
-                        />
-                        {errors.password && <span className="text-red-500 text-xs italic">{errors.password}</span>}
-                    </div>
-
-                    {/* Role Selection Dropdown */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-600">Select Role:</label>
-                        <select
-                            className="border rounded w-full py-2 px-3"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                        >
-                            <option value="">Select Role</option>
-                            <option value="Doctor">Doctor</option>
-                            <option value="Pharmacist">Pharmacist</option>
-                            <option value="Admin">Admin</option>
-                        </select>
-                        {errors.role && <span className="text-red-500 text-xs italic">{errors.role}</span>}
-                    </div>
-
-                    <div className="flex items-center justify-between mb-4">
-                        <label className="flex items-center text-sm">
-                            <input
-                                type="checkbox"
-                                className="mr-2"
-                                checked={rememberMe}
-                                onChange={() => setRememberMe(!rememberMe)}
-                            />
-                            Remember me
-                        </label>
-                        <a href="#" className="text-sm text-blue-500 hover:underline">
-                            Forgot password?
-                        </a>
-                    </div>
-
-                    <button
-                        className="bg-indigo-500 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded"
-                        type="submit"
-                    >
-                        Log in
-                    </button>
-                </form>
-                  {/* Back to Home Button */}
-                  <div className="text-center mt-6">
-                     <button onClick={() => navigate("/")} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition">Back to Home</button>
-                  </div>
-            </div> 
-            <LOGOUT />
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="username" className="block text-gray-700 font-medium mb-2">
+              Username
+            </label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition duration-300 ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+        
+        <div className="mt-4 text-center">
+          <p className="text-gray-600">
+            Don't have an account?{" "}
+            <button
+              onClick={() => navigate("/register")}
+              className="text-blue-500 hover:text-blue-700"
+            >
+              Register
+            </button>
+          </p>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
-export default LogIn;
+export default Login;

@@ -1,8 +1,4 @@
-# In database.py - Already correct in your provided code
-# No changes needed to database.py schema or functions
-
-# In main.py - Update the registration flow
-from database import init_db, register_user, login, register_doctor, list_doctors # Ensure register_doctor is imported
+from database import init_db, register_user, login
 from pharmacist import pharmacist_dashboard
 from admin import admin_dashboard 
 from doctor import doctor_dashboard
@@ -36,14 +32,13 @@ if __name__ == "__main__":
                 if role == 'doctor':
                     specialization = input("Specialization: ")
                     hospital = input("Hospital: ")
-                    register_doctor(username, password, full_name, specialization, hospital)
-                else:
-                    if role == 'pharmacist':
-                        license_num = input("License Number: ")
-                        register_user(username, password, role, full_name, license_num)
-                    elif role == 'admin':
-                        access_level = input("Access Level (basic/super): ")
-                        register_user(username, password, role, full_name, access_level)
+                    register_user(username, password, role, full_name=full_name, specialization=specialization, hospital=hospital)
+                elif role == 'pharmacist':
+                    license_number = input("License Number: ")
+                    register_user(username, password, role, full_name=full_name, license_number=license_number)
+                elif role == 'admin':
+                    access_level = input("Access Level (basic/super): ")
+                    register_user(username, password, role, full_name=full_name, access_level=access_level)
                         
                 print("Registration successful!")
                 
@@ -62,15 +57,13 @@ if __name__ == "__main__":
                 elif user['role'] == 'admin':
                     admin_dashboard(user)
                 elif user['role'] == 'doctor':
-                     doctor_dashboard(user)
+                    doctor_dashboard(user)
             else:
                 print("Invalid credentials!")
                 
         elif choice == '3':
-            print("Exiting...")
+            print("Exiting........")
             break
             
         else:
             print("Invalid choice!")
-
-            

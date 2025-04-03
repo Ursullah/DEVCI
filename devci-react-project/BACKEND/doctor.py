@@ -1,4 +1,3 @@
-# doctor.py
 import sqlite3
 from database import require_role
 
@@ -22,34 +21,30 @@ def doctor_dashboard(user):
 
 def write_prescription(doctor):
     print("\n--- New Prescription ---")
-    patient_name = input("Patient's Full Name: ")
-    patient_age = input("Patient's Age: ")
-    patient_contact = input("Contact Info: ")
-    medication = input("Medication: ")
+    patient_id = input("Patient ID: ")
+    medicine_id = input("Medicine ID: ")
     dosage = input("Dosage: ")
-    instructions = input("Instructions: ")
 
-    with sqlite3.connect('pharmacy.db', timeout=10) as db:
+    with sqlite3.connect('pharmacy.db') as db:
         cursor = db.cursor()
         cursor.execute('''
             INSERT INTO prescriptions 
-            (doctor_id, patient_name, patient_age, patient_contact, 
-             medication, dosage, instructions, verification_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
-        ''', (doctor['id'], patient_name, patient_age, patient_contact, 
-              medication, dosage, instructions))
+            (doctor_id, patient_id, medicine_id, dosage, status)
+            VALUES (?, ?, ?, ?, 'pending')
+        ''', (doctor['id'], patient_id, medicine_id, dosage))
         db.commit()
     print("✅ Prescription created successfully!")
 
 def view_prescriptions(doctor):
     with sqlite3.connect('pharmacy.db') as db:
-        cursor = db.execute('''
-            SELECT prescription_id, patient_name, medication, timestamp 
+        cursor = db.cursor()
+        cursor.execute('''
+            SELECT id, patient_id, medicine_id, dosage, status, created_at 
             FROM prescriptions 
             WHERE doctor_id = ?
-            ORDER BY timestamp DESC
+            ORDER BY created_at DESC
         ''', (doctor['id'],))
         
         print("\nYour Recent Prescriptions:")
         for rx in cursor.fetchall():
-            print(f"{rx[3]} | {rx[1]} | {rx[2]} (ID: {rx[0]})")
+            print(f"{rx[5]} | Patient ID: {rx[1]} | Medicine ID: {rx[2]} | Dosage: {rx[3]} | Status: {rx[4]} (ID: {rx[0]})")

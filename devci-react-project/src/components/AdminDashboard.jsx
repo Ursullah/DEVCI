@@ -1,6 +1,6 @@
+// AdminDashboard.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import LOGOUT from './LOGOUT';
+import axios from 'axios';
 
 const AdminDashboard = () => {
     const [doctors, setDoctors] = useState([]);
@@ -9,23 +9,54 @@ const AdminDashboard = () => {
     const [hospital, setHospital] = useState("");
     const [specialization, setSpecialization] = useState("");
     const [errors, setErrors] = useState({});
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [editingDoctor, setEditingDoctor] = useState(null);
     const [auditLogs, setAuditLogs] = useState([]);
     const [prescriptions, setPrescriptions] = useState([]);
-    const navigate = useNavigate();
 
-    // Fetch data from localStorage on component mount
     useEffect(() => {
-        const storedAuditLogs = JSON.parse(localStorage.getItem("auditLogs")) || [];
-        setAuditLogs(storedAuditLogs);
+        const fetchDoctors = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:5000/admin/doctors', {
+                    headers: {}
+                });
+                setDoctors(response.data.doctors);
+            } catch (err) {
+                console.error("Error fetching doctors:", err);
+                setErrors({ message: "Error fetching doctors. Please try again." });
+            }
+        };
 
-        const storedPrescriptions = JSON.parse(localStorage.getItem("prescriptions")) || [];
-        setPrescriptions(storedPrescriptions);
+        const fetchAuditLogs = async () => {
+            try {
+                const response = await axios.get("http://127.0.0.1:5000/api/audit-logs");
+                setAuditLogs(response.data.logs);
+            } catch (err) {
+                console.error("Error fetching audit logs:", err);
+                setErrors({ message: "Error fetching audit logs. Please try again." });
+            }
+        };
+
+        const fetchPrescriptions = async () => {
+            try {
+                const response = await axios.get("http://127.0.0.1:5000/api/prescriptions");
+                setPrescriptions(response.data.prescriptions);
+            } catch (err) {
+                console.error("Error fetching prescriptions:", err);
+                setErrors({ message: "Error fetching prescriptions. Please try again." });
+            }
+        };
+
+        fetchDoctors();
+        fetchAuditLogs();
+        fetchPrescriptions();
     }, []);
 
     const validate = () => {
         const validationErrors = {};
-        if (!name) validationErrors.name = "Doctor's ID is required";
+        if (!name) validationErrors.name = "Doctor's name is required";
         if (!email) {
             validationErrors.email = "Email is required";
         } else if (!/\S+@\S+\.\S+/.test(email)) {
@@ -33,48 +64,67 @@ const AdminDashboard = () => {
         }
         if (!hospital) validationErrors.hospital = "Hospital name is required";
         if (!specialization) validationErrors.specialization = "Specialization is required";
+        if (!username) validationErrors.username = "Username is required";
+        if (!password) validationErrors.password = "Password is required";
+        if (password !== confirmPassword) validationErrors.confirmPassword = "Passwords do not match";
+        if (password.length < 8) validationErrors.password = "Password must be at least 8 characters long";
 
         setErrors(validationErrors);
         return Object.keys(validationErrors).length === 0;
     };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        if (name === "name") setName(value);
-        else if (name === "hospital") setHospital(value);
-        else if (name === "email") setEmail(value);
-        else if (name === "specialization") setSpecialization(value);
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validate()) return;
 
-        const doctorData = { id: Date.now(), name, email, hospital, specialization };
+        const doctorData = { 
+            username,
+            password,
+            full_name: name,
+            email, 
+            hospital, 
+            specialization };
 
-        if (editingDoctor !== null) {
-            setDoctors(doctors.map(doc => doc.id === editingDoctor ? doctorData : doc));
+        try {
+            if (editingDoctor !== null) {
+                // Update existing doctor
+                await axios.put(`http://127.0.0.1:5000/admin/doctors/${editingDoctor}`, doctorData);
+                setDoctors(doctors.map(doc => doc.id === editingDoctor ? { ...doc, ...doctorData } : doc));
+                alert("Doctor updated successfully!");
+            } else {
+                // Register new doctor
+                const response = await axios.post("http://127.0.0.1:5000/api/register", doctorData);
+                setDoctors([...doctors, response.data]);
+                alert("Doctor registered successfully!");
+            }
+
+            // Clear form fields
+            setName("");
+            setEmail("");
+            setHospital("");
+            setUsername("");
+            setPassword("");
+            setConfirmPassword("");
+            setSpecialization("");
             setEditingDoctor(null);
-            alert("Doctor updated successfully!");
-        } else {
-            setDoctors([...doctors, doctorData]);
+        } catch (error) {
+            console.error("Error saving doctor:", error);
         }
-
-        setName("");
-        setEmail("");
-        setHospital("");
-        setSpecialization("");
     };
 
-    const handleDelete = (doctorId) => {
+    const handleDelete = async (doctorId) => {
         if (!window.confirm("Are you sure you want to delete this doctor?")) return;
-        setDoctors(doctors.filter(doc => doc.id !== doctorId));
+
+        try {
+            await axios.delete(`http://127.0.0.1:5000/api/admin/doctors/${doctorId}`);
+            setDoctors(doctors.filter(doc => doc.id !== doctorId));
+            alert("Doctor deleted successfully!");
+        } catch (error) {
+            console.error("Error deleting doctor:", error);
+        }
     };
 
-    const handleEdit = (doctorId) => {
-        const doctor = doctors.find((doc) => doc.id === doctorId);
-        if (!doctor) return;
-
+    const handleEdit = (doctor) => {
         setName(doctor.name);
         setEmail(doctor.email);
         setHospital(doctor.hospital);
@@ -90,21 +140,33 @@ const AdminDashboard = () => {
             <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-lg font-bold mb-4">{editingDoctor !== null ? "Edit Doctor" : "Register Doctor"}</h2>
 
-                <label className="block font-semibold">Doctor's ID:</label>
-                <input type="text" name="name" value={name} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded mb-4" />
+                <label className="block font-semibold">Doctor's Name:</label>
+                <input type="text" name="name" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.name && <span className="text-red-500 text-xs italic">{errors.name}</span>}
 
                 <label className="block font-semibold">Hospital:</label>
-                <input type="text" name="hospital" value={hospital} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded mb-4" />
+                <input type="text" name="hospital" value={hospital} onChange={(e) => setHospital(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.hospital && <span className="text-red-500 text-xs italic">{errors.hospital}</span>}
 
                 <label className="block font-semibold">Email Address:</label>
-                <input type="email" name="email" value={email} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded mb-4" />
+                <input type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.email && <span className="text-red-500 text-xs italic">{errors.email}</span>}
 
                 <label className="block font-semibold">Specialization:</label>
-                <input type="text" name="specialization" value={specialization} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded mb-4" />
+                <input type="text" name="specialization" value={specialization} onChange={(e) => setSpecialization(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.specialization && <span className="text-red-500 text-xs italic">{errors.specialization}</span>}
+
+                <label className="block font-semibold">Username:</label>
+                <input type="text" name="username" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
+                {errors.username && <span className="text-red-500 text-xs italic">{errors.username}</span>}
+
+                <label className="block font-semibold">Password:</label>
+                <input type="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
+                {errors.password && <span className="text-red-500 text-xs italic">{errors.password}</span>}
+
+                <label className="block font-semibold">Confirm Password:</label>
+                <input type="password" name="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
+                {errors.confirmPassword && <span className="text-red-500 text-xs italic">{errors.confirmPassword}</span>}
 
                 <button className="bg-indigo-500 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded w-full" type="submit">
                     {editingDoctor !== null ? "Update Doctor" : "Register Doctor"}
@@ -121,13 +183,13 @@ const AdminDashboard = () => {
                         {doctors.map((doctor) => (
                             <li key={doctor.id} className="flex justify-between items-center border-b py-2">
                                 <div>
-                                    <p><strong>ID:</strong> {doctor.name}</p>
+                                    <p><strong>Name:</strong> {doctor.name}</p>
                                     <p><strong>Hospital:</strong> {doctor.hospital}</p>
                                     <p><strong>Email:</strong> {doctor.email}</p>
                                     <p><strong>Specialization:</strong> {doctor.specialization}</p>
                                 </div>
                                 <div>
-                                    <button onClick={() => handleEdit(doctor.id)} className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-700">Edit</button>
+                                    <button onClick={() => handleEdit(doctor)} className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-700">Edit</button>
                                     <button onClick={() => handleDelete(doctor.id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
                                 </div>
                             </li>
@@ -164,17 +226,16 @@ const AdminDashboard = () => {
                     <ul>
                         {prescriptions.map((prescription) => (
                             <li key={prescription.id} className="border-b py-2">
-                                <p><strong>Doctor:</strong> {prescription.doctorName}</p>
-                                <p><strong>Patient:</strong> {prescription.patientName}</p>
-                                <p><strong>Medication:</strong> {prescription.medication}</p>
+                                <p><strong>Patient Name:</strong> {prescription.patientName}</p>
+                                <p><strong>Medication:</strong> {prescription.medicine}</p>
                                 <p><strong>Dosage:</strong> {prescription.dosage}</p>
+                                <p><strong>Status:</strong> {prescription.status}</p>   
                             </li>
                         ))}
+                        
                     </ul>
                 )}
             </div>
-
-            <LOGOUT />
         </div>
     );
 };
