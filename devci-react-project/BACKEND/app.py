@@ -6,24 +6,21 @@ import secrets
 import sqlite3
 from database import login, register_user, init_db, require_role
 from functools import wraps
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pharmacy.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 #CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)   
 CORS(app, origins='http://localhost:5173', supports_credentials=True, allow_headers=['Content-Type', 'Authorization'])
 
 # Initialize the database
-init_db()
+init_db = SQLAlchemy(app)
 
 # Authentication middleware
-def auth_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        user = session.get('user')
-        if not user:
-            return jsonify({'error': 'Unauthorized'}), 401
-        return f(user, *args, **kwargs)
-    return decorated
+#
+   #
 
 # Role middleware
 def role_required(role):
@@ -299,7 +296,7 @@ def search_by_id(id):
             return jsonify({'error': str(e)}), 500
 
 @app.route('/prescriptions/audit', methods=['GET'])
-@auth_required
+#
 @role_required('pharmacist')
 def get_audit_log(user):
     with sqlite3.connect('pharmacy.db') as conn:
@@ -327,7 +324,7 @@ def get_audit_log(user):
 
 # New admin routes
 @app.route('/admin/doctors', methods=['GET'])
-@auth_required
+#
 @role_required('admin')
 def get_doctors(user):
     with sqlite3.connect('pharmacy.db') as conn:
@@ -405,7 +402,7 @@ def delete_doctor(user, id):
         except sqlite3.Error as e:
             return jsonify({'error': str(e)}), 500
 @app.route('/api/audit-logs', methods=['GET'])
-@auth_required
+#
 @role_required('pharmacist')
 def get_audit_logs(user):
     with sqlite3.connect('pharmacy.db') as conn:

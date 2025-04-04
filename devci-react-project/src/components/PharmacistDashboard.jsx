@@ -15,7 +15,10 @@ const PharmacistDashboard = () => {
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/prescriptions/doctor", { withCredentials: true });
+        const response = await axios.get("http://localhost:5000/prescriptions/search/patient", {
+          params: { name: search },
+          withCredentials: true
+        });
         setPrescriptions(response.data.prescriptions);
       } catch (error) {
         console.error("Error fetching prescriptions:", error.response ? error.response.data : error.message);
@@ -33,16 +36,21 @@ const PharmacistDashboard = () => {
 
     fetchPrescriptions();
     fetchAuditLogs();
-  }, []);
+  }, [search]); // Add search as a dependency to re-fetch prescriptions when search changes
 
-  // Filter prescriptions based on search
-  const filteredPrescriptions = prescriptions.filter((prescription) =>
-    prescription.patient_name.toLowerCase().includes(search.toLowerCase())
-  );
-
+  // Handle prescription verification
   const handleVerify = async () => {
-    // Verification logic remains the same
-    // ...
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/prescriptions/verify",
+        { doctor_name: doctorID, medication: medicine },
+        { withCredentials: true }
+      );
+      setStatusMessage(response.data.message);
+    } catch (error) {
+      setStatusMessage("Error verifying prescription");
+      console.error(error);
+    }
   };
 
   return (
@@ -64,43 +72,40 @@ const PharmacistDashboard = () => {
         {/* Prescription list */}
         <div className="bg-white p-4 shadow rounded mb-6">
           <h3 className="text-lg font-semibold">Prescription</h3>
-          {filteredPrescriptions.length === 0 ? (
-            search ? (
-              <p>No matching patient found.</p>
-            ) : (
-              <p>No prescriptions available.</p>
-            )
+          {prescriptions.length === 0 ? (
+            <p>{search ? "No matching patient found." : "No prescriptions available."}</p>
           ) : (
-            filteredPrescriptions.map((prescription) => (
+            prescriptions.map((prescription) => (
               <div key={prescription.id} className="p-3 border-b">
                 <p><strong>Patient:</strong> {prescription.patient_name}</p>
-                <p><strong>Age:</strong> {prescription.patient_age}</p>
-                <p><strong>Contact:</strong> {prescription.info}</p>
                 <p><strong>Medication:</strong> {prescription.medication}</p>
                 <p><strong>Dosage:</strong> {prescription.dosage}</p>
                 <p><strong>Doctor:</strong> {prescription.doctor_name}</p>
+                <p><strong>Status:</strong> {prescription.status}</p>
               </div>
             ))
           )}
         </div>
 
-        {/* Verification section */}
+        {/* Prescription verification section */}
         <h3 className="text-lg font-semibold mb-2">Verify prescription</h3>
         <form className="space-y-4">
           <input 
             type="text" 
             placeholder="Doctor ID"
             value={doctorID} 
-            onChange={e => setDoctorID(e.target.value)} 
-            className="w-full p-2 border rounded" required 
+            onChange={(e) => setDoctorID(e.target.value)} 
+            className="w-full p-2 border rounded" 
+            required 
           />
 
           <input 
             type="text" 
             placeholder="Medicine" 
             value={medicine} 
-            onChange={e => setMedicine(e.target.value)} 
-            className="w-full p-2 border rounded" required 
+            onChange={(e) => setMedicine(e.target.value)} 
+            className="w-full p-2 border rounded" 
+            required 
           />
 
           <button 
@@ -113,7 +118,7 @@ const PharmacistDashboard = () => {
       
       {/* Audit Log Section */}
       <div className="max-w-lg mx-auto mt-6 bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-2">Doctor's Log</h3>
+        <h3 className="text-lg font-semibold mb-2">Audit Log</h3>
         <ul className="bg-gray-50 p-4 rounded-md">
           {auditLogs.length === 0 ? (
             <p className="text-gray-500">No logs available</p>
@@ -133,6 +138,6 @@ const PharmacistDashboard = () => {
       </div>
     </div>
   );
-};  
+};
 
 export default PharmacistDashboard;

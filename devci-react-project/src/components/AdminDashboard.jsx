@@ -1,6 +1,7 @@
 // AdminDashboard.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import LOGOUT from '../components/LOGOUT'; // Assuming LOGOUT is a component for logging out
 
 const AdminDashboard = () => {
     const [doctors, setDoctors] = useState([]);
@@ -133,11 +134,13 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="flex flex-col items-center min-h-screen bg-gray-100">
+        <div className="flex flex-col min-h-screen bg-gray-400">
             <h1 className="text-2xl font-bold text-center mb-4">ADMIN'S DASHBOARD</h1>
+            <h2 className='text-2xl font-bold mb-4'>Hello Allan!</h2>
 
             {/* Doctor Registration Form */}
-            <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
+            <div className='grid grid-cols-4  gap-4 w-full p-4'>
+            <form onSubmit={handleSubmit} className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-lg font-bold mb-4">{editingDoctor !== null ? "Edit Doctor" : "Register Doctor"}</h2>
 
                 <label className="block font-semibold">Doctor's Name:</label>
@@ -174,7 +177,7 @@ const AdminDashboard = () => {
             </form>
 
             {/* Doctors List */}
-            <div className="w-full max-w-2xl mt-8 bg-white p-6 rounded-lg shadow-lg">
+            <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-lg font-bold mb-4">Registered Doctors</h2>
                 {doctors.length === 0 ? (
                     <p className="text-gray-500">No doctors registered.</p>
@@ -199,7 +202,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Pharmacist Audit Logs */}
-            <div className="w-full max-w-2xl mt-8 bg-white p-6 rounded-lg shadow-lg">
+            <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-lg font-bold mb-4">Pharmacist Audit Logs</h2>
                 {auditLogs.length === 0 ? (
                     <p className="text-gray-500">No audit logs available.</p>
@@ -218,7 +221,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Doctors' Prescriptions */}
-            <div className="w-full max-w-2xl mt-8 bg-white p-6 rounded-lg shadow-lg">
+            <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-lg font-bold mb-4">Doctors' Prescriptions</h2>
                 {prescriptions.length === 0 ? (
                     <p className="text-gray-500">No prescriptions available.</p>
@@ -237,7 +240,9 @@ const AdminDashboard = () => {
                 )}
             </div>
         </div>
+        </div>
     );
+    <LOGOUT />
 };
 
 export default AdminDashboard;
