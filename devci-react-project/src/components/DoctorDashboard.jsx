@@ -11,6 +11,9 @@ const DoctorDashboard = () => {
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
   const [prescriptions, setPrescriptions] = useState([]);
+  const role = localStorage.getItem('role')
+  const name = localStorage.getItem('name')
+  const doctorId = localStorage.getItem('id')
 
   // Fetch prescriptions from backend using Axios
   useEffect(() => {
@@ -56,14 +59,19 @@ const DoctorDashboard = () => {
     if (!validate()) return;
 
     const newPrescription = {
-      doctorName: "Dr. John Doe", // Replace with actual doctor's name if available
+      doctorName: name,
+      doctorId: doctorId,
       patientName,
       patientAge,
       contact: info,
       medication,
       dosage,
       instructions: message,
+      role,
+      
     };
+
+    console.log(newPrescription)
 
     try {
       const response = await axios.post("http://localhost:5000/api/prescriptions", newPrescription);
