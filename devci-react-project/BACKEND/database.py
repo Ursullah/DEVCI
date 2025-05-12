@@ -65,7 +65,6 @@ def init_db():
             -- Prescriptions
             CREATE TABLE IF NOT EXISTS prescriptions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                patient_id INTEGER NOT NULL REFERENCES users(id),
                 doctor_id INTEGER NOT NULL REFERENCES users(id),
                 medicine_id INTEGER NOT NULL REFERENCES medicines(id),
                 dosage TEXT NOT NULL,

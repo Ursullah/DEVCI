@@ -11,6 +11,9 @@ from flask_sqlalchemy import SQLAlchemy
 from Auth.login import login_bp
 from Auth.register import register_bp
 from Doctor.presctiption import prescription_bp
+from medicine.medicine import medicine_bp
+from medicine.addMedicine import add_medicine_bp
+from admin.admin import admin_bp
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -31,6 +34,10 @@ init_db = SQLAlchemy(app)
 app.register_blueprint(login_bp, url_prefix='/api')
 app.register_blueprint(register_bp, url_prefix='/api')
 app.register_blueprint(prescription_bp, url_prefix='/api')
+app.register_blueprint(medicine_bp, url_prefix='/api')
+app.register_blueprint(add_medicine_bp, url_prefix='/api')
+app.register_blueprint(admin_bp, url_prefix='/api')
+
 
 # Authentication middleware
 #

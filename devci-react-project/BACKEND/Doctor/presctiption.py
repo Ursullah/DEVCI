@@ -9,7 +9,7 @@ prescription_bp = Blueprint('prescription', __name__)
 def add_prescription():
     data = request.json
     print(data)
-    # doctor = g.user
+    # doctor = g.userdata
 
     # if not doctor:
     #     return jsonify({'error': 'unauthorized'}), 401
@@ -23,7 +23,7 @@ def add_prescription():
         cursor = conn.cursor()
         try:
             cursor.execute('''
-            INSERT INTO prescriptions(doctor_id, patient_id, medicine_id, dosage, status) VALUES (?, ?, ?, ?. 'pending')
+            INSERT INTO prescriptions(doctor_id, patient_id, medicine_id, dosage, status) VALUES (?, ?, ?, ?, 'pending')
             ''', (doctor_id, patient_id, medicine_id,dosage))
             conn.commit()
             return jsonify({'message': "Prescription recorded successfully", 'id': cursor.lastrowid})

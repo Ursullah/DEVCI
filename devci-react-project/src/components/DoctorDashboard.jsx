@@ -11,19 +11,28 @@ const DoctorDashboard = () => {
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
   const [prescriptions, setPrescriptions] = useState([]);
-  const role = localStorage.getItem('role')
-  const name = localStorage.getItem('name')
-  const doctorId = localStorage.getItem('id')
+  const [searchTerm, setSeaarchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  const role = localStorage.getItem("role");
+  const name = localStorage.getItem("name");
+  const doctorId = localStorage.getItem("id");
 
   // Fetch prescriptions from backend using Axios
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/prescriptions",
-          patientName, patientAge, info, medication, dosage,
+        const response = await axios.get(
+          "http://localhost:5000/prescriptions",
+          patientName,
+          patientAge,
+          info,
+          medication,
+          dosage,
           {
-          headers: {"Content-Type": "application/json"},
-        });
+            headers: { "Content-Type": "application/json" },
+          }
+        );
         setPrescriptions(response.data);
       } catch (err) {
         console.error("Error fetching prescriptions:", err);
@@ -32,6 +41,31 @@ const DoctorDashboard = () => {
 
     fetchPrescriptions();
   }, []);
+
+  const searchMedicine = async () => {
+    if (!searchTerm.trim()) {
+      searchResults([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/searchmedicine?name=${searchTerm}`
+      );
+      setSearchResults(response.data);
+      console.log(response.data)
+      setShowResults(true);
+    } catch (err) {
+      console.error("Error searching medicine", err);
+      setSearchResults([]);
+    }
+  };
+
+  const selectMedicine = (medicine) => {
+    setMedication(medicine.name);
+    setSeaarchTerm(medicine.name);
+    setShowResults(false);
+  };
 
   const validate = () => {
     const validationErrors = {};
@@ -50,8 +84,16 @@ const DoctorDashboard = () => {
     if (name === "patientName") setPatientName(value);
     else if (name === "patientAge") setPatientAge(value);
     else if (name === "info") setInfo(value);
-    else if (name === "medication") setMedication(value);
     else if (name === "dosage") setDosage(value);
+    else if (name === "medication") {
+      setMedication(value);
+      setSeaarchTerm(value);
+      if (value.length > 2) {
+        searchMedicine();
+      } else {
+        setSearchResults([]);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -68,13 +110,15 @@ const DoctorDashboard = () => {
       dosage,
       instructions: message,
       role,
-      
     };
 
-    console.log(newPrescription)
+    console.log(newPrescription);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/prescriptions", newPrescription);
+      const response = await axios.post(
+        "http://localhost:5000/api/prescriptions",
+        newPrescription
+      );
       setPrescriptions([...prescriptions, response.data]);
 
       alert("Patient prescription is saved ✅");
@@ -93,8 +137,13 @@ const DoctorDashboard = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-400 flex-col">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Doctor's Prescription</h2>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
+      >
+        <h2 className="text-2xl font-bold text-center mb-6">
+          Doctor's Prescription
+        </h2>
 
         <div className="mb-4">
           <label className="block font-semibold">Patient's Name:</label>
@@ -106,7 +155,9 @@ const DoctorDashboard = () => {
             placeholder="Enter patient's name"
             className="w-full p-2 border border-gray-300 rounded mt-1"
           />
-          {errors.patientName && <span className="text-red-500 text-sm">{errors.patientName}</span>}
+          {errors.patientName && (
+            <span className="text-red-500 text-sm">{errors.patientName}</span>
+          )}
         </div>
 
         <div className="mb-4">
@@ -119,7 +170,9 @@ const DoctorDashboard = () => {
             placeholder="Enter age"
             className="w-full p-2 border border-gray-300 rounded mt-1"
           />
-          {errors.patientAge && <span className="text-red-500 text-sm">{errors.patientAge}</span>}
+          {errors.patientAge && (
+            <span className="text-red-500 text-sm">{errors.patientAge}</span>
+          )}
         </div>
 
         <div className="mb-4">
@@ -132,20 +185,45 @@ const DoctorDashboard = () => {
             placeholder="Enter contact number"
             className="w-full p-2 border border-gray-300 rounded mt-1"
           />
-          {errors.info && <span className="text-red-500 text-sm">{errors.info}</span>}
+          {errors.info && (
+            <span className="text-red-500 text-sm">{errors.info}</span>
+          )}
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <label className="block font-semibold">Medicine Name:</label>
           <input
             type="text"
             name="medication"
             value={medication}
             onChange={handleChange}
-            placeholder="Enter medicine name"
+            onFocus={() => searchTerm && setShowResults(true)}
+            onBlur={() => setTimeout(() => setShowResults(false), 200)}
+            placeholder="Search medicine..."
             className="w-full p-2 border border-gray-300 rounded mt-1"
           />
           {errors.medication && <span className="text-red-500 text-sm">{errors.medication}</span>}
+          
+          {/* Search results dropdown */}
+          {showResults && searchResults.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
+              {searchResults.map((medicine) => (
+                <div
+                  key={medicine.id}
+                  className="p-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100"
+                  onClick={() => selectMedicine(medicine)}
+                >
+                  <div className="font-medium">{medicine.name}</div>
+                  <div className="text-sm text-gray-600">
+                    Stock: {medicine.stock} | Price: ${medicine.price}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Expires: {new Date(medicine.expiry_date).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mb-4">
@@ -164,7 +242,9 @@ const DoctorDashboard = () => {
             <option value="3×3">3×3</option>
             <option value="3×1">3×1</option>
           </select>
-          {errors.dosage && <span className="text-red-500 text-sm">{errors.dosage}</span>}
+          {errors.dosage && (
+            <span className="text-red-500 text-sm">{errors.dosage}</span>
+          )}
         </div>
 
         <textarea
@@ -175,7 +255,10 @@ const DoctorDashboard = () => {
           className="w-full p-2 border border-gray-300 rounded mb-4"
         ></textarea>
 
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        >
           Set Prescription
         </button>
       </form>
@@ -189,13 +272,28 @@ const DoctorDashboard = () => {
           <ul>
             {prescriptions.map((prescription) => (
               <li key={prescription.id} className="border-b py-2">
-                <p><strong>Doctor:</strong> {prescription.doctorName}</p>
-                <p><strong>Patient:</strong> {prescription.patientName}</p>
-                <p><strong>Age:</strong> {prescription.patientAge}</p>
-                <p><strong>Contact:</strong> {prescription.contact}</p>
-                <p><strong>Medication:</strong> {prescription.medication}</p>
-                <p><strong>Dosage:</strong> {prescription.dosage}</p>
-                <p><strong>Instructions:</strong> {prescription.instructions || "N/A"}</p>
+                <p>
+                  <strong>Doctor:</strong> {prescription.doctorName}
+                </p>
+                <p>
+                  <strong>Patient:</strong> {prescription.patientName}
+                </p>
+                <p>
+                  <strong>Age:</strong> {prescription.patientAge}
+                </p>
+                <p>
+                  <strong>Contact:</strong> {prescription.contact}
+                </p>
+                <p>
+                  <strong>Medication:</strong> {prescription.medication}
+                </p>
+                <p>
+                  <strong>Dosage:</strong> {prescription.dosage}
+                </p>
+                <p>
+                  <strong>Instructions:</strong>{" "}
+                  {prescription.instructions || "N/A"}
+                </p>
               </li>
             ))}
           </ul>
