@@ -41,14 +41,16 @@ function App() {
       <Routes>
        
         {/* Protected Routes inside Layout */}
+        <Route path="/login" element={<LogIn setIsAuthenticated={handleAuth} />} />
+        <Route path="register" element={<RegisterUser/>} />
+
+
         <Route
           path="/"
           element={isAuthenticated ? <Layout /> : <Navigate to="/login" replace />}>
-             <Route path="/login" element={<LogIn setIsAuthenticated={handleAuth} />} />
           <Route index element={<HomePage setIsAuthenticated={handleAuth} />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
-          <Route path="register" element={<RegisterUser/>} />
           <Route path="doctordashboard" element={<DoctorDashboard />} />
           <Route path="admindashboard" element={<AdminDashboard />} />
           <Route path="pharmacistdashboard" element={<PharmacistDashboard />} />

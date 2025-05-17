@@ -6,7 +6,6 @@ import LOGOUT from '../components/LOGOUT'; // Assuming LOGOUT is a component for
 const AdminDashboard = () => {
     const [doctors, setDoctors] = useState([]);
     const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
     const [hospital, setHospital] = useState("");
     const [specialization, setSpecialization] = useState("");
     const [errors, setErrors] = useState({});
@@ -20,10 +19,12 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchDoctors = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:5000/admin/doctors', {
+                const response = await axios.get('http://localhost:5000/api/admin/doctors', {
                     headers: {}
                 });
                 setDoctors(response.data.doctors);
+                console.log(response.data)
+
             } catch (err) {
                 console.error("Error fetching doctors:", err);
                 setErrors({ message: "Error fetching doctors. Please try again." });
@@ -58,11 +59,6 @@ const AdminDashboard = () => {
     const validate = () => {
         const validationErrors = {};
         if (!name) validationErrors.name = "Doctor's name is required";
-        if (!email) {
-            validationErrors.email = "Email is required";
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            validationErrors.email = "Invalid email format";
-        }
         if (!hospital) validationErrors.hospital = "Hospital name is required";
         if (!specialization) validationErrors.specialization = "Specialization is required";
         if (!username) validationErrors.username = "Username is required";
@@ -82,7 +78,6 @@ const AdminDashboard = () => {
             username,
             password,
             full_name: name,
-            email, 
             hospital, 
             specialization };
 
@@ -94,14 +89,13 @@ const AdminDashboard = () => {
                 alert("Doctor updated successfully!");
             } else {
                 // Register new doctor
-                const response = await axios.post("http://127.0.0.1:5000/api/register", doctorData);
+                const response = await axios.post("http://localhost:5000/api/admin/register-doctors", doctorData);
                 setDoctors([...doctors, response.data]);
                 alert("Doctor registered successfully!");
             }
 
             // Clear form fields
             setName("");
-            setEmail("");
             setHospital("");
             setUsername("");
             setPassword("");
@@ -132,11 +126,12 @@ const AdminDashboard = () => {
         setSpecialization(doctor.specialization);
         setEditingDoctor(doctor.id);
     };
+    const adminName = localStorage.getItem('name')
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-400">
             <h1 className="text-2xl font-bold text-center mb-4">ADMIN'S DASHBOARD</h1>
-            <h2 className='text-2xl font-bold mb-4'>Hello Allan!</h2>
+            <h2 className='text-2xl font-bold mb-4'>Hello {adminName}</h2>
 
             {/* Doctor Registration Form */}
             <div className='grid grid-cols-4  gap-4 w-full p-4'>
@@ -150,10 +145,6 @@ const AdminDashboard = () => {
                 <label className="block font-semibold">Hospital:</label>
                 <input type="text" name="hospital" value={hospital} onChange={(e) => setHospital(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
                 {errors.hospital && <span className="text-red-500 text-xs italic">{errors.hospital}</span>}
-
-                <label className="block font-semibold">Email Address:</label>
-                <input type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
-                {errors.email && <span className="text-red-500 text-xs italic">{errors.email}</span>}
 
                 <label className="block font-semibold">Specialization:</label>
                 <input type="text" name="specialization" value={specialization} onChange={(e) => setSpecialization(e.target.value)} className="w-full p-2 border border-gray-300 rounded mb-4" />
@@ -186,9 +177,8 @@ const AdminDashboard = () => {
                         {doctors.map((doctor) => (
                             <li key={doctor.id} className="flex justify-between items-center border-b py-2">
                                 <div>
-                                    <p><strong>Name:</strong> {doctor.name}</p>
+                                    <p><strong>Name:</strong> {doctor.full_name}</p>
                                     <p><strong>Hospital:</strong> {doctor.hospital}</p>
-                                    <p><strong>Email:</strong> {doctor.email}</p>
                                     <p><strong>Specialization:</strong> {doctor.specialization}</p>
                                 </div>
                                 <div>

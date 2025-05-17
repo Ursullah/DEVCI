@@ -5,8 +5,9 @@ import axios from "axios"; // Import Axios
 const PharmacistDashboard = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [doctorID, setDoctorID] = useState("");
+  const [doctorName, setDoctorName] = useState("");
   const [medicine, setMedicine] = useState("");
+  const [patient, setPatient] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [prescriptions, setPrescriptions] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -15,38 +16,55 @@ const PharmacistDashboard = () => {
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/prescriptions/search/patient", {
-          params: { name: search },
-          withCredentials: true
-        });
-        setPrescriptions(response.data.prescriptions);
+        const response = await axios.get(
+          `http://localhost:5000/api/searchpatient?name=${search}`
+        );
+        setPrescriptions(response.data);
       } catch (error) {
-        console.error("Error fetching prescriptions:", error.response ? error.response.data : error.message);
-      }
-    };
-
-    const fetchAuditLogs = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/prescriptions/audit", { withCredentials: true });
-        setAuditLogs(response.data.logs);
-      } catch (error) {
-        console.error("Error fetching audit logs:", error.response ? error.response.data : error.message);
+        console.error(
+          "Error fetching prescriptions:",
+          error.response ? error.response.data : error.message
+        );
       }
     };
 
     fetchPrescriptions();
-    fetchAuditLogs();
-  }, [search]); // Add search as a dependency to re-fetch prescriptions when search changes
+  }, [search]);
 
-  // Handle prescription verification
+  useEffect(() => {
+    const fetchAuditLogs = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/audit",
+        );
+        setAuditLogs(response.data);
+        console.log(response.data)
+      } catch (error) {
+        console.error(
+          "Error fetching audit logs:",
+          error.response ? error.response.data : error.message
+        );
+      }
+    };
+
+    fetchAuditLogs();
+  }, []);
+
   const handleVerify = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/prescriptions/verify",
-        { doctor_name: doctorID, medication: medicine },
-        { withCredentials: true }
+        "http://localhost:5000/api/verifyprescription",
+        { doctorName: doctorName, medicineName: medicine, patientName: patient },
       );
+
       setStatusMessage(response.data.message);
+
+      setTimeout(() => {
+        setStatusMessage('');
+      }, 4000)
+      setMedicine('')
+      setDoctorName('')
+      setPatient('')
     } catch (error) {
       setStatusMessage("Error verifying prescription");
       console.error(error);
@@ -56,7 +74,9 @@ const PharmacistDashboard = () => {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-4">Pharmacist Dashboard</h2>
+        <h2 className="text-2xl font-bold text-center mb-4">
+          Pharmacist Dashboard
+        </h2>
 
         {/* Search bar */}
         <div className="mb-4">
@@ -73,15 +93,29 @@ const PharmacistDashboard = () => {
         <div className="bg-white p-4 shadow rounded mb-6">
           <h3 className="text-lg font-semibold">Prescription</h3>
           {prescriptions.length === 0 ? (
-            <p>{search ? "No matching patient found." : "No prescriptions available."}</p>
+            <p>
+              {search
+                ? "No matching patient found."
+                : "No prescriptions available."}
+            </p>
           ) : (
             prescriptions.map((prescription) => (
               <div key={prescription.id} className="p-3 border-b">
-                <p><strong>Patient:</strong> {prescription.patient_name}</p>
-                <p><strong>Medication:</strong> {prescription.medication}</p>
-                <p><strong>Dosage:</strong> {prescription.dosage}</p>
-                <p><strong>Doctor:</strong> {prescription.doctor_name}</p>
-                <p><strong>Status:</strong> {prescription.status}</p>
+                <p>
+                  <strong>Patient:</strong> {prescription.patient_name}
+                </p>
+                <p>
+                  <strong>Medication:</strong> {prescription.medicine_name}
+                </p>
+                <p>
+                  <strong>Dosage:</strong> {prescription.dosage}
+                </p>
+                <p>
+                  <strong>Doctor:</strong> {prescription.doctor_name}
+                </p>
+                <p>
+                  <strong>Status:</strong> {prescription.status}
+                </p>
               </div>
             ))
           )}
@@ -90,32 +124,46 @@ const PharmacistDashboard = () => {
         {/* Prescription verification section */}
         <h3 className="text-lg font-semibold mb-2">Verify prescription</h3>
         <form className="space-y-4">
-          <input 
-            type="text" 
-            placeholder="Doctor ID"
-            value={doctorID} 
-            onChange={(e) => setDoctorID(e.target.value)} 
-            className="w-full p-2 border rounded" 
-            required 
+          <input
+            type="text"
+            placeholder="Doctor Name"
+            value={doctorName}
+            onChange={(e) => setDoctorName(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
           />
 
-          <input 
-            type="text" 
-            placeholder="Medicine" 
-            value={medicine} 
-            onChange={(e) => setMedicine(e.target.value)} 
-            className="w-full p-2 border rounded" 
-            required 
+          <input
+            type="text"
+            placeholder="Patient Name"
+            value={patient}
+            onChange={(e) => setPatient(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
           />
 
-          <button 
-            type="button" 
-            onClick={handleVerify} 
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Verify Prescription</button>
+          <input
+            type="text"
+            placeholder="Medicine"
+            value={medicine}
+            onChange={(e) => setMedicine(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
+
+          <button
+            type="button"
+            onClick={handleVerify}
+            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          >
+            Verify Prescription
+          </button>
         </form>
-        <p className="text-center mt-4 text-red-600 font-semibold">{statusMessage}</p>
+        <p className="text-center mt-4 text-red-600 font-semibold">
+          {statusMessage}
+        </p>
       </div>
-      
+
       {/* Audit Log Section */}
       <div className="max-w-lg mx-auto mt-6 bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-2">Audit Log</h3>
@@ -125,16 +173,27 @@ const PharmacistDashboard = () => {
           ) : (
             auditLogs.map((log, index) => (
               <li key={index} className="border-b py-2">
-                <strong>{log.medicine}</strong> - {log.status} on {log.created_at}
+                <div>
+                  <p><strong>Patient Name:</strong> {log.patientName}</p>
+                  <p><strong>Doctor Name:</strong> {log.doctorName}</p>
+                  <p><strong>Medicine Name:</strong> {log.medicineName}</p>
+                  <p><strong>Status:</strong> {log.status}</p>
+                </div>
+                
               </li>
             ))
           )}
         </ul>
       </div>
-      
+
       {/* Back to Home Button */}
       <div className="text-center mt-6">
-        <button onClick={() => navigate("/")} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Back to Home</button>
+        <button
+          onClick={() => navigate("/")}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+        >
+          Back to Home
+        </button>
       </div>
     </div>
   );

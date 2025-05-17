@@ -27,11 +27,14 @@ const Login = ({ setIsAuthenticated }) => {
     try {
       // Make a POST request to the backend login endpoint
       const response = await axios.post('http://localhost:5000/api/login', formData);
+      console.log(response)
       setIsAuthenticated(true);
       
       // Navigate based on user role
       const user = response.data.user; // Adjust based on your backend response structure
       localStorage.setItem("role", user.role);
+      localStorage.setItem('name', user.full_name)
+      localStorage.setItem('id', user.id)
       
       if (user.role === "admin") {
         navigate("/admin-dashboard");

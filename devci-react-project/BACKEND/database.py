@@ -20,7 +20,7 @@ def init_db():
     with sqlite3.connect('pharmacy.db') as conn:
         # conn = sqlite3('pharmacy.db')
         cursor = conn.cursor()
-        cursor.executescript('''
+        cursor.execute('''
             PRAGMA foreign_keys = ON;
 
             -- Core Tables
@@ -65,12 +65,15 @@ def init_db():
             -- Prescriptions
             CREATE TABLE IF NOT EXISTS prescriptions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                patient_id INTEGER NOT NULL REFERENCES users(id),
                 doctor_id INTEGER NOT NULL REFERENCES users(id),
+                doctor_name TEXT NOT NULL,
+                patient_name TEXT NOT NULL,
+                patient_age TEXT NOT NULL,
+                contact TEXT,
                 medicine_id INTEGER NOT NULL REFERENCES medicines(id),
+                medicine_name TEXT NOT NULL,
                 dosage TEXT NOT NULL,
                 status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'filled', 'rejected')),
-                pharmacist_id INTEGER REFERENCES users(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         ''')
