@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import LOGOUT from "./LOGOUT";
 
@@ -7,6 +7,7 @@ const DoctorDashboard = () => {
   const [patientAge, setPatientAge] = useState("");
   const [info, setInfo] = useState("");
   const [medication, setMedication] = useState("");
+  const [medicineId, setMedicineId] = useState('')
   const [dosage, setDosage] = useState("");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
@@ -22,17 +23,7 @@ const DoctorDashboard = () => {
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/prescriptions",
-          patientName,
-          patientAge,
-          info,
-          medication,
-          dosage,
-          {
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        const response = await axios.get(`http://localhost:5000/api/doctorprescription?id=${doctorId}`);
         setPrescriptions(response.data);
       } catch (err) {
         console.error("Error fetching prescriptions:", err);
@@ -40,6 +31,22 @@ const DoctorDashboard = () => {
     };
 
     fetchPrescriptions();
+  }, []);
+
+  console.log(prescriptions)
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const searchMedicine = async () => {
@@ -53,7 +60,7 @@ const DoctorDashboard = () => {
         `http://localhost:5000/api/searchmedicine?name=${searchTerm}`
       );
       setSearchResults(response.data);
-      console.log(response.data)
+      console.log(response.data);
       setShowResults(true);
     } catch (err) {
       console.error("Error searching medicine", err);
@@ -61,11 +68,25 @@ const DoctorDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (searchTerm.length > 2) {
+        searchMedicine(searchTerm);
+      } else {
+        searchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
+
   const selectMedicine = (medicine) => {
+    setMedicineId(medicine.id)
     setMedication(medicine.name);
     setSeaarchTerm(medicine.name);
     setShowResults(false);
   };
+
 
   const validate = () => {
     const validationErrors = {};
@@ -88,11 +109,6 @@ const DoctorDashboard = () => {
     else if (name === "medication") {
       setMedication(value);
       setSeaarchTerm(value);
-      if (value.length > 2) {
-        searchMedicine();
-      } else {
-        setSearchResults([]);
-      }
     }
   };
 
@@ -106,10 +122,10 @@ const DoctorDashboard = () => {
       patientName,
       patientAge,
       contact: info,
+      medicineId: medicineId,
       medication,
       dosage,
       instructions: message,
-      role,
     };
 
     console.log(newPrescription);
@@ -200,26 +216,41 @@ const DoctorDashboard = () => {
             onFocus={() => searchTerm && setShowResults(true)}
             onBlur={() => setTimeout(() => setShowResults(false), 200)}
             placeholder="Search medicine..."
+            autoComplete="off"
             className="w-full p-2 border border-gray-300 rounded mt-1"
           />
-          {errors.medication && <span className="text-red-500 text-sm">{errors.medication}</span>}
-          
+          {errors.medication && (
+            <span className="text-red-500 text-sm">{errors.medication}</span>
+          )}
+
           {/* Search results dropdown */}
           {showResults && searchResults.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
               {searchResults.map((medicine) => (
                 <div
-                  key={medicine.id}
+                  key={medicine.id || medicine.name}
                   className="p-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100"
-                  onClick={() => selectMedicine(medicine)}
+                  onMouseDown={() => selectMedicine(medicine)} // Use onMouseDown to prevent blur
                 >
-                  <div className="font-medium">{medicine.name}</div>
+                  <div className="font-medium flex justify-between">
+                    <span>{medicine.name}</span>
+                    <span className="text-blue-600">KSH {medicine.price}</span>
+                  </div>
                   <div className="text-sm text-gray-600">
-                    Stock: {medicine.stock} | Price: ${medicine.price}
+                    {medicine.stock > 0 ? (
+                      <span className="text-green-600">
+                        In stock: {medicine.stock}
+                      </span>
+                    ) : (
+                      <span className="text-red-600">Out of stock</span>
+                    )}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    Expires: {new Date(medicine.expiry_date).toLocaleDateString()}
-                  </div>
+                  {medicine.expiry_date && (
+                    <div className="text-xs text-gray-500">
+                      Expires:{" "}
+                      {new Date(medicine.expiry_date).toLocaleDateString()}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -264,22 +295,22 @@ const DoctorDashboard = () => {
       </form>
 
       {/* Patient Logs - View Saved Prescriptions */}
-      <div className="w-full max-w-2xl mt-8 bg-white p-6 rounded-lg shadow-lg">
+      <div className="w-full max-w-2xl mt-8 bg-white p-6 rounded-lg shadow-lg overflow-y-scroll h-[100vh]">
         <h2 className="text-lg font-bold mb-4">Patient Logs</h2>
         {prescriptions.length === 0 ? (
           <p className="text-gray-500">No prescriptions recorded yet.</p>
         ) : (
           <ul>
-            {prescriptions.map((prescription) => (
-              <li key={prescription.id} className="border-b py-2">
+            {prescriptions.map((prescription, index) => (
+              <li key={index} className="border-b py-2">
                 <p>
-                  <strong>Doctor:</strong> {prescription.doctorName}
+                  <strong>Doctor:</strong> {prescription.doctor_name}
                 </p>
                 <p>
-                  <strong>Patient:</strong> {prescription.patientName}
+                  <strong>Patient:</strong> {prescription.patient_name}
                 </p>
                 <p>
-                  <strong>Age:</strong> {prescription.patientAge}
+                  <strong>Age:</strong> {prescription.patient_age}
                 </p>
                 <p>
                   <strong>Contact:</strong> {prescription.contact}
@@ -292,7 +323,7 @@ const DoctorDashboard = () => {
                 </p>
                 <p>
                   <strong>Instructions:</strong>{" "}
-                  {prescription.instructions || "N/A"}
+                  {prescription.instruction || "N/A"}
                 </p>
               </li>
             ))}

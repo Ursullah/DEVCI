@@ -14,6 +14,10 @@ from Doctor.presctiption import prescription_bp
 from medicine.medicine import medicine_bp
 from medicine.addMedicine import add_medicine_bp
 from admin.admin import admin_bp
+from Doctor.getDoctorPrescriptions import doctorPrescriptioon_bd
+from pharmacist.searchPatient import searchPatient_bp
+from pharmacist.verifyPrescriptions import verifyPrescription_bp
+from pharmacist.audit import audit_bp
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -37,6 +41,11 @@ app.register_blueprint(prescription_bp, url_prefix='/api')
 app.register_blueprint(medicine_bp, url_prefix='/api')
 app.register_blueprint(add_medicine_bp, url_prefix='/api')
 app.register_blueprint(admin_bp, url_prefix='/api')
+app.register_blueprint(doctorPrescriptioon_bd, url_prefix='/api')
+app.register_blueprint(searchPatient_bp, url_prefix='/api')
+app.register_blueprint(verifyPrescription_bp, url_prefix='/api')
+app.register_blueprint(audit_bp, url_prefix='/api')
+
 
 
 # Authentication middleware
@@ -62,116 +71,7 @@ def logout():
 #         return jsonify({'user': user})
 #     return jsonify({'error': 'Unauthorized'}), 401
 
-# # New prescription routes for doctors
-# @app.route('/api/prescriptions', methods=['POST'])
-# # @auth_required
-# @role_required('doctor')
-# def create_prescription():
-#     data = request.json
-#     user = data.role
-#     print(data)
 
-#     if not user: 
-#         return jsonify({'error': 'Unauthorized'}), 401
-#     patient_id = data.get('patient_id')
-#     medicine_id = data.get('medicine_id')
-#     dosage = data.get('dosage')
-    
-#     with sqlite3.connect('pharmacy.db') as conn:
-#         cursor = conn.cursor()
-#         try:
-#             cursor.execute('''
-#                 INSERT INTO prescriptions 
-#                 (doctor_id, patient_id, medicine_id, dosage, status)
-#                 VALUES (?, ?, ?, ?, 'pending')
-#             ''', (user['id'], patient_id, medicine_id, dosage))
-#             conn.commit()
-#             return jsonify({'message': 'Prescription created successfully', 'id': cursor.lastrowid})
-#         except sqlite3.Error as e:
-#             return jsonify({'error': str(e)}), 500
-
-# @app.route('/prescriptions/doctor', methods=['GET'])
-# # @auth_required
-# @role_required('doctor')
-# def get_doctor_prescriptions(user):
-#     with sqlite3.connect('pharmacy.db') as conn:
-#         cursor = conn.cursor()
-#         try:
-#             cursor.execute('''
-#                 SELECT 
-#                     p.id, 
-#                     u.username as patient_name, 
-#                     m.name as medicine_name,
-#                     p.dosage, 
-#                     p.status, 
-#                     p.created_at
-#                 FROM prescriptions p
-#                 JOIN users u ON p.patient_id = u.id
-#                 JOIN medicines m ON p.medicine_id = m.id
-#                 WHERE doctor_id = ?
-#                 ORDER BY created_at DESC
-#             ''', (user['id'],))
-            
-#             prescriptions = []
-#             columns = [column[0] for column in cursor.description]
-#             for row in cursor.fetchall():
-#                 prescriptions.append(dict(zip(columns, row)))
-                
-#             return jsonify({'prescriptions': prescriptions})
-#         except sqlite3.Error as e:
-#             return jsonify({'error': str(e)}), 500
-
-# # New prescription routes for pharmacists
-# @app.route('/prescriptions/verify', methods=['POST'])
-# # @auth_required
-# @role_required('pharmacist')
-# def verify_prescription(user):
-#     data = request.json
-#     doctor_name = data.get('doctor_name')
-#     medication = data.get('medication')
-#     patient_info = data.get('patient_info', '')
-    
-#     with sqlite3.connect('pharmacy.db') as conn:
-#         cursor = conn.cursor()
-        
-#         try:
-#             cursor.execute('''
-#                 SELECT id, specialization FROM doctors 
-#                 WHERE full_name LIKE ? LIMIT 1
-#             ''', (f'%{doctor_name}%',))
-            
-#             doctor = cursor.fetchone()
-            
-#             if not doctor:
-#                 return jsonify({'status': 'critical', 'message': 'Doctor not found in database'})
-                
-#             doctor_id, specialization = doctor
-            
-#             cursor.execute('''
-#                 SELECT 1 FROM medicines 
-#                 WHERE name = ?
-#             ''', (medication,))
-            
-#             is_valid = cursor.fetchone() is not None
-#             status = 'valid' if is_valid else 'warning'
-            
-#             # Log verification
-#             cursor.execute('''
-#                 INSERT INTO prescriptions 
-#                 (pharmacist_id, doctor_id, medicine_id, patient_id, status)
-#                 VALUES (?, ?, ?, ?, ?)
-#             ''', (user['id'], doctor_id, medication, patient_info, status))
-            
-#             conn.commit()
-            
-#             result = {
-#                 'status': status,
-#                 'message': 'Verification successful' if is_valid else f'Alert: {medication} may not be typically prescribed by {specialization}s'
-#             }
-            
-#             return jsonify(result)
-#         except sqlite3.Error as e:
-#             return jsonify({'error': str(e)}), 500
 
 # @app.route('/prescriptions/search/patient', methods=['GET'])
 # # @auth_required

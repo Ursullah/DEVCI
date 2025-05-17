@@ -126,11 +126,12 @@ const AdminDashboard = () => {
         setSpecialization(doctor.specialization);
         setEditingDoctor(doctor.id);
     };
+    const adminName = localStorage.getItem('name')
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-400">
             <h1 className="text-2xl font-bold text-center mb-4">ADMIN'S DASHBOARD</h1>
-            <h2 className='text-2xl font-bold mb-4'>Hello Allan!</h2>
+            <h2 className='text-2xl font-bold mb-4'>Hello {adminName}</h2>
 
             {/* Doctor Registration Form */}
             <div className='grid grid-cols-4  gap-4 w-full p-4'>
