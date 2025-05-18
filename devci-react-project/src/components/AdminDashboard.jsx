@@ -43,8 +43,9 @@ const AdminDashboard = () => {
 
         const fetchPrescriptions = async () => {
             try {
-                const response = await axios.get("http://127.0.0.1:5000/api/prescriptions");
-                setPrescriptions(response.data.prescriptions);
+                const response = await axios.get("http://localhost:5000/api/adminprescription");
+                console.log(response.data)
+                setPrescriptions(response.data);
             } catch (err) {
                 console.error("Error fetching prescriptions:", err);
                 setErrors({ message: "Error fetching prescriptions. Please try again." });
@@ -219,8 +220,8 @@ const AdminDashboard = () => {
                     <ul>
                         {prescriptions.map((prescription) => (
                             <li key={prescription.id} className="border-b py-2">
-                                <p><strong>Patient Name:</strong> {prescription.patientName}</p>
-                                <p><strong>Medication:</strong> {prescription.medicine}</p>
+                                <p><strong>Patient Name:</strong> {prescription.patient_name}</p>
+                                <p><strong>Medication:</strong> {prescription.medicine_name}</p>
                                 <p><strong>Dosage:</strong> {prescription.dosage}</p>
                                 <p><strong>Status:</strong> {prescription.status}</p>   
                             </li>
