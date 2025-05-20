@@ -9,25 +9,26 @@ prescription_bp = Blueprint('prescription', __name__)
 def add_prescription():
     data = request.json
     print(data)
-    # doctor = g.user
-
-    # if not doctor:
-    #     return jsonify({'error': 'unauthorized'}), 401
     
-    patient_id = data.get('patient_id')
-    medicine_id = data.get('medicine_id')
     doctor_id = data.get('doctorId')
+    doctor_Name = data.get("doctorName")
+    patient_name = data.get('patientName')
+    patient_age = data.get('patientAge')
+    contact = data.get('contact')
+    medicine_id = data.get('medicineId')
+    medicine_name = data.get('medication')
     dosage = data.get('dosage')
+    instructioins = data.get('instructions')
     
     with sqlite3.connect('pharmacy.db') as conn:
         cursor = conn.cursor()
         try:
             cursor.execute('''
-            INSERT INTO prescriptions(doctor_id, patient_id, medicine_id, dosage, status) VALUES (?, ?, ?, ?. 'pending')
-            ''', (doctor_id, patient_id, medicine_id,dosage))
+            INSERT INTO prescriptions(doctor_id, doctor_name, patient_name, patient_age, contact, medicine_id, medicine_name, dosage, instructions, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            ''', (doctor_id, doctor_Name, patient_name, patient_age, contact, medicine_id, medicine_name ,dosage, instructioins))
             conn.commit()
             return jsonify({'message': "Prescription recorded successfully", 'id': cursor.lastrowid})
         except sqlite3.Error as e:
-            print(e)
+            print(str(e))
             return jsonify({'error': str(e)}), 500
         
