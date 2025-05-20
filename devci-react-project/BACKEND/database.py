@@ -67,6 +67,7 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 doctor_id INTEGER NOT NULL REFERENCES users(id),
                 doctor_name TEXT NOT NULL,
+                pharmacist_id INTEGER,
                 patient_name TEXT NOT NULL,
                 patient_age TEXT NOT NULL,
                 contact TEXT,
@@ -74,7 +75,8 @@ def init_db():
                 medicine_name TEXT NOT NULL,
                 dosage TEXT NOT NULL,
                 status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'filled', 'rejected')),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP
             );
         ''')
         conn.commit()
