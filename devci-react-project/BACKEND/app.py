@@ -14,10 +14,12 @@ from Doctor.presctiption import prescription_bp
 from medicine.medicine import medicine_bp
 from medicine.addMedicine import add_medicine_bp
 from admin.admin import admin_bp
+from admin.getPrescriptions import getPrescriptioon_bd
 from Doctor.getDoctorPrescriptions import doctorPrescriptioon_bd
 from pharmacist.searchPatient import searchPatient_bp
 from pharmacist.verifyPrescriptions import verifyPrescription_bp
 from pharmacist.audit import audit_bp
+from pharmacist.checkprescription import debug_bp
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -45,6 +47,8 @@ app.register_blueprint(doctorPrescriptioon_bd, url_prefix='/api')
 app.register_blueprint(searchPatient_bp, url_prefix='/api')
 app.register_blueprint(verifyPrescription_bp, url_prefix='/api')
 app.register_blueprint(audit_bp, url_prefix='/api')
+app.register_blueprint(getPrescriptioon_bd, url_prefix='/api')
+app.register_blueprint(debug_bp, url_prefix='/api')
 
 
 

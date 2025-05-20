@@ -12,10 +12,11 @@ def recreate_prescriptions_table():
         
         # Recreate the table with the new schema
         cursor.execute('''
-            CREATE TABLE prescriptions (
+           CREATE TABLE IF NOT EXISTS prescriptions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 doctor_id INTEGER NOT NULL REFERENCES users(id),
                 doctor_name TEXT NOT NULL,
+                pharmacist_id INTEGER,
                 patient_name TEXT NOT NULL,
                 patient_age TEXT NOT NULL,
                 contact TEXT,
@@ -24,8 +25,9 @@ def recreate_prescriptions_table():
                 dosage TEXT NOT NULL,
                 instructions TEXT,
                 status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'filled', 'rejected')),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP
+            );
         ''')
         
         # Re-enable foreign key constraints

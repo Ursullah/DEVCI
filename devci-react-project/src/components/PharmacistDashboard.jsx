@@ -11,6 +11,7 @@ const PharmacistDashboard = () => {
   const [statusMessage, setStatusMessage] = useState("");
   const [prescriptions, setPrescriptions] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const id = localStorage.getItem('id')
 
   // Fetch prescriptions and audit logs from the backend
   useEffect(() => {
@@ -54,7 +55,7 @@ const PharmacistDashboard = () => {
     try {
       const response = await axios.post(
         "http://localhost:5000/api/verifyprescription",
-        { doctorName: doctorName, medicineName: medicine, patientName: patient },
+        { doctorName: doctorName, medicineName: medicine, patientName: patient, id: id },
       );
 
       setStatusMessage(response.data.message);
